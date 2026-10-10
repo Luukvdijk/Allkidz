@@ -1,5 +1,6 @@
 import "server-only";
 import { cache } from "react";
+import { connection } from "next/server";
 import { supabaseServer, type Supabase } from "@/lib/supabase/server";
 import type { PlanData, ShiftStatus } from "@/lib/types";
 
@@ -36,6 +37,8 @@ type ShiftRow = {
 
 /** The whole workspace (about 300 shifts) in one go; filtering and conflict detection happen in memory. */
 export const loadWorkspace = cache(async (): Promise<{ ws: Workspace; data: PlanData }> => {
+  // Request-time data (session cookie): never part of the prerendered shell.
+  await connection();
   const sb = await supabaseServer();
   const [ws, e, l, t, u, shifts] = await Promise.all([
     getWorkspace(sb),

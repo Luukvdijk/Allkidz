@@ -1,0 +1,45 @@
+"use client";
+
+import { usePathname, useRouter } from "next/navigation";
+import { NativeSelect } from "@/components/ui/native-select";
+
+interface Props {
+  employees: { id: string; name: string }[];
+  locations: { id: string; name: string }[];
+}
+
+/** "Bekijk als": switch between the planner, an employee (phone view) and a client, inside the same sandbox. */
+export function RoleSwitcher({ employees, locations }: Props) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [, section, id] = pathname.split("/");
+  const value = section === "medewerker" || section === "opdrachtgever" ? `/${section}/${id}` : "/planbord";
+
+  return (
+    <label className="flex items-center gap-2 text-sm">
+      <span className="hidden text-muted-foreground sm:inline">Bekijk als</span>
+      <NativeSelect
+        aria-label="Bekijk als"
+        value={value}
+        onChange={(e) => router.push(e.target.value)}
+        className="w-48 sm:w-56"
+      >
+        <option value="/planbord">Planner (Sanne)</option>
+        <optgroup label="Medewerker (telefoon)">
+          {employees.map((e) => (
+            <option key={e.id} value={`/medewerker/${e.id}`}>
+              {e.name}
+            </option>
+          ))}
+        </optgroup>
+        <optgroup label="Opdrachtgever">
+          {locations.map((l) => (
+            <option key={l.id} value={`/opdrachtgever/${l.id}`}>
+              {l.name}
+            </option>
+          ))}
+        </optgroup>
+      </NativeSelect>
+    </label>
+  );
+}
