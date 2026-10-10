@@ -326,7 +326,7 @@ function OpenShifts({ employee, actor }: { employee: Employee; actor: Actor }) {
     start(async () => {
       const r = await assignEmployee(s.id, employee.id, actor);
       if ("error" in r) toast.error(r.error);
-      else toast.success(`Je staat op ${s.code}`, { description: "De planner en de opdrachtgever zien het direct." });
+      else toast.success(`Je staat op ${s.code}`, { description: r.notified ? "De planner ziet het direct en de opdrachtgever krijgt bericht." : "De planner ziet het direct." });
     });
 
   return (
