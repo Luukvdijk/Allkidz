@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useTransition } from "react";
-import { LogOut, RotateCcw } from "lucide-react";
+import { LogOut, Menu, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { logout, resetDemo } from "@/app/actions/demo";
 
@@ -37,6 +38,8 @@ export function AppHeader({ employees, locations, messageCount }: Props) {
   const plannerView = !pathname.startsWith("/medewerker") && !pathname.startsWith("/opdrachtgever");
   const [resetOpen, setResetOpen] = useState(false);
   const [pending, start] = useTransition();
+  const [menuOpen, setMenuOpen] = useState(false);
+
 
   const doReset = () =>
     start(async () => {
@@ -48,7 +51,7 @@ export function AppHeader({ employees, locations, messageCount }: Props) {
 
   return (
     <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
-      <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5">
+      <div className="mx-auto flex max-w-[1600px] items-center gap-x-4 px-4 py-2.5">
         <Link href="/planbord" className="flex items-center gap-2 font-semibold tracking-tight">
           <span className="grid size-7 place-items-center rounded-md bg-primary text-xs font-bold text-primary-foreground">
             AK
@@ -58,31 +61,12 @@ export function AppHeader({ employees, locations, messageCount }: Props) {
         </Link>
 
         {plannerView && (
-          <nav className="order-last -mx-1 flex w-full gap-1 overflow-x-auto md:order-none md:w-auto">
-            {NAV.map((n) => {
-              const active = pathname.startsWith(n.href);
-              return (
-                <Link
-                  key={n.href}
-                  href={n.href}
-                  className={cn(
-                    "rounded-md px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors",
-                    active ? "bg-accent font-medium text-accent-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  )}
-                >
-                  {n.label}
-                  {n.href === "/berichten" && messageCount > 0 && (
-                    <span className="ml-1.5 rounded-full bg-primary px-1.5 text-[11px] font-medium text-primary-foreground">
-                      {messageCount}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
+          <nav aria-label="Hoofdmenu" className="hidden gap-1 md:flex">
+            <NavLinks pathname={pathname} messageCount={messageCount} />
           </nav>
         )}
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto hidden items-center gap-2 md:flex">
           <RoleSwitcher employees={employees} locations={locations} />
           <Button variant="ghost" size="sm" onClick={() => setResetOpen(true)} title="Demo resetten">
             <RotateCcw />
@@ -94,7 +78,41 @@ export function AppHeader({ employees, locations, messageCount }: Props) {
             </Button>
           </form>
         </div>
+
+        <Button variant="ghost" size="icon" className="relative ml-auto md:hidden" aria-label="Menu openen" onClick={() => setMenuOpen(true)}>
+          <Menu className="size-5" />
+          {plannerView && messageCount > 0 && <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-primary" aria-hidden />}
+        </Button>
       </div>
+
+      <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+        <SheetContent side="right" className="w-[85%] max-w-xs gap-0">
+          <SheetHeader className="border-b">
+            <SheetTitle>Menu</SheetTitle>
+          </SheetHeader>
+          <div className="flex flex-1 flex-col gap-6 p-4">
+            <div className="grid gap-1.5">
+              <span className="text-xs font-medium text-muted-foreground uppercase">Bekijk als</span>
+              <RoleSwitcher employees={employees} locations={locations} fullWidth onNavigate={() => setMenuOpen(false)} />
+            </div>
+            {plannerView && (
+              <nav aria-label="Hoofdmenu" className="grid gap-1">
+                <NavLinks pathname={pathname} messageCount={messageCount} large onNavigate={() => setMenuOpen(false)} />
+              </nav>
+            )}
+            <div className="mt-auto grid gap-2 border-t pt-4">
+              <Button variant="outline" onClick={() => { setMenuOpen(false); setResetOpen(true); }}>
+                <RotateCcw /> Reset demo
+              </Button>
+              <form action={logout} className="grid">
+                <Button variant="ghost" type="submit">
+                  <LogOut /> Uitloggen
+                </Button>
+              </form>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <Dialog open={resetOpen} onOpenChange={setResetOpen}>
         <DialogContent>
@@ -114,4 +132,28 @@ export function AppHeader({ employees, locations, messageCount }: Props) {
       </Dialog>
     </header>
   );
+}
+
+function NavLinks({ pathname, messageCount, large = false, onNavigate }: { pathname: string; messageCount: number; large?: boolean; onNavigate?: () => void }) {
+  return NAV.map((n) => {
+    const active = pathname.startsWith(n.href);
+    return (
+      <Link
+        key={n.href}
+        href={n.href}
+        onClick={onNavigate}
+        aria-current={active ? "page" : undefined}
+        className={cn(
+          "flex items-center rounded-md whitespace-nowrap transition-colors",
+          large ? "px-3 py-2.5 text-base" : "px-2.5 py-1.5 text-sm",
+          active ? "bg-accent font-medium text-accent-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+        )}
+      >
+        {n.label}
+        {n.href === "/berichten" && messageCount > 0 && (
+          <span className="ml-1.5 rounded-full bg-primary px-1.5 text-[11px] font-medium text-primary-foreground">{messageCount}</span>
+        )}
+      </Link>
+    );
+  });
 }

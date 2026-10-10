@@ -89,14 +89,14 @@ export function Toolbar({ filters, set, scoped, visible }: Props) {
           </Button>
         </div>
         <h1 className="text-lg font-semibold tracking-tight first-letter:uppercase">{title}</h1>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto">
           <Button
             variant={filters.onlyConflicts ? "destructive" : "outline"}
             size="sm"
             aria-pressed={filters.onlyConflicts}
             onClick={() => set({ onlyConflicts: !filters.onlyConflicts })}
           >
-            <AlertTriangle /> Alleen conflicten ({conflictCount})
+            <AlertTriangle /> <span className="sm:hidden">Conflicten</span><span className="hidden sm:inline">Alleen conflicten</span> ({conflictCount})
           </Button>
           <Button
             variant={filters.onlyOpen ? "secondary" : "outline"}
@@ -105,16 +105,16 @@ export function Toolbar({ filters, set, scoped, visible }: Props) {
             onClick={() => set({ onlyOpen: !filters.onlyOpen })}
             className={cn(filters.onlyOpen && "bg-open/15 text-open-foreground")}
           >
-            <CircleDashed /> Alleen open ({openCount})
+            <CircleDashed /> <span className="sm:hidden">Open</span><span className="hidden sm:inline">Alleen open</span> ({openCount})
           </Button>
-          <Button size="sm" onClick={() => create({ date: filters.date })}>
+          <Button size="sm" className="ml-auto sm:ml-0" onClick={() => create({ date: filters.date })}>
             <Plus /> Nieuwe dienst
           </Button>
         </div>
       </div>
 
       {(filters.view === "dag" || filters.view === "lijst") && (
-        <div className="flex gap-1 overflow-x-auto pb-0.5" role="tablist" aria-label="Dag van de week">
+        <div className="-mx-4 flex gap-1 overflow-x-auto px-4 pb-0.5 sm:mx-0 sm:px-0" role="tablist" aria-label="Dag van de week">
           {week.map((d) => {
             const day = visible.filter((s) => s.date === d);
             const c = day.filter((s) => byShift.has(s.id)).length;
@@ -127,15 +127,16 @@ export function Toolbar({ filters, set, scoped, visible }: Props) {
                 aria-selected={active}
                 onClick={() => set({ date: d, view: "dag" })}
                 className={cn(
-                  "min-w-28 flex-1 rounded-lg border px-3 py-1.5 text-left transition-colors",
+                  "min-w-24 flex-1 shrink-0 rounded-lg border px-2.5 py-1.5 text-left transition-colors sm:min-w-28 sm:px-3",
                   active ? "border-primary bg-accent" : "bg-card hover:bg-muted",
                 )}
               >
                 <span className="block text-sm font-medium first-letter:uppercase">{shortDate(d)}</span>
-                <span className="flex gap-2 text-xs text-muted-foreground tabular-nums">
-                  <span>{day.length} dnst</span>
+                <span className="flex gap-1.5 text-xs whitespace-nowrap text-muted-foreground tabular-nums sm:gap-2">
+                  <span className="hidden sm:inline">{day.length} dnst</span>
                   {o > 0 && <span className="text-open-foreground">{o} open</span>}
                   {c > 0 && <span className="font-medium text-destructive">{c} confl</span>}
+                  {o === 0 && c === 0 && <span className="sm:hidden">{day.length} dnst</span>}
                 </span>
               </button>
             );
@@ -143,8 +144,8 @@ export function Toolbar({ filters, set, scoped, visible }: Props) {
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-full sm:w-64">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+        <div className="relative col-span-2 sm:w-64">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
@@ -155,7 +156,7 @@ export function Toolbar({ filters, set, scoped, visible }: Props) {
             className="pl-8"
           />
         </div>
-        <NativeSelect aria-label="Medewerker" value={filters.employeeId ?? ""} onChange={(e) => set({ employeeId: e.target.value || undefined })} className="w-40">
+        <NativeSelect aria-label="Medewerker" value={filters.employeeId ?? ""} onChange={(e) => set({ employeeId: e.target.value || undefined })} className="w-full sm:w-40">
           <option value="">Alle medewerkers</option>
           {data.employees.map((e) => (
             <option key={e.id} value={e.id}>
@@ -163,7 +164,7 @@ export function Toolbar({ filters, set, scoped, visible }: Props) {
             </option>
           ))}
         </NativeSelect>
-        <NativeSelect aria-label="Locatie" value={filters.locationId ?? ""} onChange={(e) => set({ locationId: e.target.value || undefined })} className="w-48">
+        <NativeSelect aria-label="Locatie" value={filters.locationId ?? ""} onChange={(e) => set({ locationId: e.target.value || undefined })} className="w-full sm:w-48">
           <option value="">Alle locaties</option>
           {data.locations.map((l) => (
             <option key={l.id} value={l.id}>
@@ -171,7 +172,7 @@ export function Toolbar({ filters, set, scoped, visible }: Props) {
             </option>
           ))}
         </NativeSelect>
-        <NativeSelect aria-label="Functie" value={filters.fn ?? ""} onChange={(e) => set({ fn: e.target.value || undefined })} className="w-40">
+        <NativeSelect aria-label="Functie" value={filters.fn ?? ""} onChange={(e) => set({ fn: e.target.value || undefined })} className="w-full sm:w-40">
           <option value="">Alle functies</option>
           {FUNCTIONS.map((f) => (
             <option key={f}>{f}</option>
@@ -190,7 +191,7 @@ export function Toolbar({ filters, set, scoped, visible }: Props) {
           </Button>
         )}
         {emp && (
-          <p className="ml-auto text-sm text-muted-foreground tabular-nums">
+          <p className="col-span-2 text-sm text-muted-foreground tabular-nums sm:ml-auto">
             Uren: dag <b className="text-foreground">{hoursLabel(empMinutes((s) => s.date === filters.date))}</b> · week{" "}
             <b className="text-foreground">{hoursLabel(empMinutes((s) => mondayOf(s.date) === monday))}</b> · maand{" "}
             <b className="text-foreground">{hoursLabel(empMinutes((s) => s.date.startsWith(filters.date.slice(0, 7))))}</b>

@@ -9,20 +9,23 @@ interface Props {
 }
 
 /** "Bekijk als": switch between the planner, an employee (phone view) and a client, inside the same sandbox. */
-export function RoleSwitcher({ employees, locations }: Props) {
+export function RoleSwitcher({ employees, locations, fullWidth = false, onNavigate }: Props & { fullWidth?: boolean; onNavigate?: () => void }) {
   const router = useRouter();
   const pathname = usePathname();
   const [, section, id] = pathname.split("/");
   const value = section === "medewerker" || section === "opdrachtgever" ? `/${section}/${id}` : "/planbord";
 
   return (
-    <label className="flex items-center gap-2 text-sm">
-      <span className="hidden text-muted-foreground sm:inline">Bekijk als</span>
+    <label className={fullWidth ? "grid text-sm" : "flex items-center gap-2 text-sm"}>
+      {!fullWidth && <span className="hidden text-muted-foreground sm:inline">Bekijk als</span>}
       <NativeSelect
         aria-label="Bekijk als"
         value={value}
-        onChange={(e) => router.push(e.target.value)}
-        className="w-48 sm:w-56"
+        onChange={(e) => {
+          onNavigate?.();
+          router.push(e.target.value);
+        }}
+        className={fullWidth ? "w-full" : "w-48 sm:w-56"}
       >
         <option value="/planbord">Planner (Sanne)</option>
         <optgroup label="Medewerker (telefoon)">
