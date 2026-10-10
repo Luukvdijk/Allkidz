@@ -26,3 +26,13 @@ it("Fleur on Thursday shows the overlap as a gap status", () => {
   const t = buildDayTimeline(data, "Fleur", "2026-10-22");
   expect(t.gaps.some((g) => g.status === "overlap")).toBe(true);
 });
+
+it("marks a transfer to a location without travel times as unknown, not as ok", () => {
+  const d = { ...data, locations: [...data.locations, { id: "NEW", name: "BSO Nieuw", type: "BSO", city: "Utrecht" }] };
+  d.shifts = [
+    ...data.shifts,
+    { id: "X1", code: "X1", date: "2026-10-24", start: "09:00", end: "10:00", locationId: "NEW", fn: "KidzCoach", employeeId: "Noor", status: "active", note: null, seriesId: null },
+    { id: "X2", code: "X2", date: "2026-10-24", start: "11:00", end: "12:00", locationId: "BSO De Duinroos", fn: "KidzCoach", employeeId: "Noor", status: "active", note: null, seriesId: null },
+  ];
+  expect(buildDayTimeline(d, "Noor", "2026-10-24").gaps[0].status).toBe("onbekend");
+});

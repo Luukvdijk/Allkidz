@@ -16,7 +16,9 @@ function GapStrip({ gap }: { gap: Gap }) {
   const text =
     gap.status === "overlap"
       ? "Overlapt met de volgende dienst"
-      : gap.status === "te-krap"
+      : gap.status === "onbekend"
+        ? `${gap.gap} min tussen de diensten, reistijd onbekend (nieuwe locatie)`
+        : gap.status === "te-krap"
         ? `${gap.gap} min tussen de diensten, reistijd ${need} min`
         : gap.status === "krap"
           ? `Precies genoeg reistijd (${need} min)`
@@ -28,7 +30,7 @@ function GapStrip({ gap }: { gap: Gap }) {
       className={cn(
         "ml-3 flex items-center gap-1.5 border-l-2 py-1 pl-3 text-xs",
         gap.status === "ok" && "border-border text-muted-foreground",
-        gap.status === "krap" && "border-warn font-medium text-warn-foreground",
+        (gap.status === "krap" || gap.status === "onbekend") && "border-warn font-medium text-warn-foreground",
         (gap.status === "te-krap" || gap.status === "overlap") && "border-destructive font-medium text-destructive",
       )}
     >
