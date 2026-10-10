@@ -94,7 +94,7 @@ export function ShiftChip({ shift, variant = "full", showEmployee = false, dimme
           {!showEmployee && open && <span className="font-medium text-open-foreground">Open dienst</span>}
           <span>{shift.fn}</span>
           <span className="tabular-nums">{shift.code}</span>
-          {shift.note && <span className="italic">"{shift.note}"</span>}
+          {shift.note && <span className="italic">&ldquo;{shift.note}&rdquo;</span>}
           {variant === "compact" && conflicts.map((c, i) => <ConflictPill key={i} type={c.type} />)}
         </div>
         {variant === "full" && conflicts.length > 0 && (

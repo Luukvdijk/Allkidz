@@ -11,6 +11,17 @@ import { usePlan } from "./PlanContext";
 
 type SortKey = "date" | "employee" | "location" | "fn" | "status";
 
+function Th({ k, sort, onSort, children }: { k: SortKey; sort: SortKey; onSort: (k: SortKey) => void; children: React.ReactNode }) {
+  return (
+    <th scope="col" className="px-3 py-2 text-left font-medium" aria-sort={sort === k ? "ascending" : undefined}>
+      <button type="button" onClick={() => onSort(k)} className="inline-flex items-center gap-1 hover:text-foreground">
+        {children}
+        <ArrowUpDown className={cn("size-3", sort === k ? "opacity-100" : "opacity-30")} aria-hidden />
+      </button>
+    </th>
+  );
+}
+
 export function ListView({ visible, from, to }: { visible: Shift[]; from: string; to: string }) {
   const { employees, locations, byShift, edit } = usePlan();
   const [sort, setSort] = useState<SortKey>("date");
@@ -29,25 +40,16 @@ export function ListView({ visible, from, to }: { visible: Shift[]; from: string
     return visible.filter((s) => s.date >= from && s.date <= to).sort(cmp[sort]);
   }, [visible, from, to, sort, employees, locations, byShift]);
 
-  const Th = ({ k, children }: { k: SortKey; children: React.ReactNode }) => (
-    <th scope="col" className="px-3 py-2 text-left font-medium" aria-sort={sort === k ? "ascending" : undefined}>
-      <button type="button" onClick={() => setSort(k)} className="inline-flex items-center gap-1 hover:text-foreground">
-        {children}
-        <ArrowUpDown className={cn("size-3", sort === k ? "opacity-100" : "opacity-30")} aria-hidden />
-      </button>
-    </th>
-  );
-
   return (
     <div className="overflow-x-auto rounded-xl border bg-card">
       <table className="w-full min-w-[760px] text-sm">
         <thead className="sticky top-0 border-b bg-muted/60 text-xs text-muted-foreground">
           <tr>
-            <Th k="date">Datum en tijd</Th>
-            <Th k="employee">Medewerker</Th>
-            <Th k="location">Locatie</Th>
-            <Th k="fn">Functie</Th>
-            <Th k="status">Status</Th>
+            <Th k="date" sort={sort} onSort={setSort}>Datum en tijd</Th>
+            <Th k="employee" sort={sort} onSort={setSort}>Medewerker</Th>
+            <Th k="location" sort={sort} onSort={setSort}>Locatie</Th>
+            <Th k="fn" sort={sort} onSort={setSort}>Functie</Th>
+            <Th k="status" sort={sort} onSort={setSort}>Status</Th>
             <th className="px-3 py-2 text-left font-medium">Code</th>
             <th className="w-10" />
           </tr>

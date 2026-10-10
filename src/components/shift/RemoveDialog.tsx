@@ -22,7 +22,8 @@ import {
 } from "@/components/ui/dialog";
 import { usePlan, type RemoveMode } from "@/components/planbord/PlanContext";
 
-const REASONS = ["Ziek", "Op verzoek opdrachtgever", "Dubbel gepland", "Anders"];
+const PLANNER_REASONS = ["Ziek", "Op verzoek opdrachtgever", "Dubbel gepland", "Anders"];
+const EMPLOYEE_REASONS = ["Ziek", "Afspraak", "Studie of tentamen", "Anders"];
 
 export type RemoveState = { shift: Shift; mode: RemoveMode } | null;
 
@@ -53,6 +54,8 @@ function RemoveForm({ state, onClose, actor }: { state: NonNullable<RemoveState>
     locationName: loc.name,
     employeeName: emp?.name ?? null,
   });
+  const self = actor.role === "medewerker";
+  const REASONS = self ? EMPLOYEE_REASONS : PLANNER_REASONS;
   const reason = choice === "Anders" ? extra.trim() : [choice, extra.trim()].filter(Boolean).join(": ");
 
   const submit = () => {
@@ -60,10 +63,10 @@ function RemoveForm({ state, onClose, actor }: { state: NonNullable<RemoveState>
     if (!choice) return setError("Kies een reden.");
     if (!reason) return setError("Beschrijf de reden.");
     start(async () => {
-      const r = mode === "employee" ? await removeEmployee(shift.id, reason, actor) : await cancelShift(shift.id, reason, actor);
+      const r = mode === "employee" ? await removeEmployee(shift.id, reason, actor, self) : await cancelShift(shift.id, reason, actor);
       if ("error" in r) return setError(r.error);
-      toast.success(mode === "employee" ? `${emp?.name} is van ${shift.code} gehaald` : `${shift.code} is geannuleerd`, {
-        description: r.notified ? `${loc.name} krijgt automatisch bericht.` : "Vastgelegd in het wijzigingslog.",
+      toast.success(self ? `Je bent afgemeld voor ${shift.code}` : mode === "employee" ? `${emp?.name} is van ${shift.code} gehaald` : `${shift.code} is geannuleerd`, {
+        description: self ? "De planner ziet je afmelding direct." : r.notified ? `${loc.name} krijgt automatisch bericht.` : "Vastgelegd in het wijzigingslog.",
       });
       onClose();
     });
@@ -72,10 +75,10 @@ function RemoveForm({ state, onClose, actor }: { state: NonNullable<RemoveState>
   return (
     <>
       <DialogHeader>
-        <DialogTitle>{mode === "employee" ? `${emp?.name} van deze dienst halen?` : `Dienst ${shift.code} annuleren?`}</DialogTitle>
+        <DialogTitle>{self ? `Afmelden voor ${shift.code}?` : mode === "employee" ? `${emp?.name} van deze dienst halen?` : `Dienst ${shift.code} annuleren?`}</DialogTitle>
         <DialogDescription>
           <span className="first-letter:uppercase">{shortDate(shift.date)}</span> {shift.start}-{shift.end}, {loc.name}, {shift.fn}.{" "}
-          {mode === "employee" ? "De dienst wordt een open dienst." : "De dienst blijft terug te vinden in het wijzigingslog."}
+          {self ? "De planner ziet je afmelding direct en zoekt een vervanger." : mode === "employee" ? "De dienst wordt een open dienst." : "De dienst blijft terug te vinden in het wijzigingslog."}
         </DialogDescription>
       </DialogHeader>
 
@@ -101,7 +104,7 @@ function RemoveForm({ state, onClose, actor }: { state: NonNullable<RemoveState>
         />
       </fieldset>
 
-      {short ? (
+      {self ? null : short ? (
         <div className="rounded-lg border border-primary/30 bg-accent/60 p-3 text-sm">
           <p className="mb-2 flex items-center gap-1.5 font-medium text-accent-foreground">
             <Mail className="size-4" aria-hidden />
