@@ -1,0 +1,859 @@
+{
+ "_note": "ZELF GEMAAKT: fictieve aanvulling op de testdata van AllKidz (licenties, opdrachtgevers, activiteiten, tassen, aanvragen). Geen echte gegevens.",
+ "licenceTypes": [
+  "VOG",
+  "EHBO",
+  "Kinder-EHBO",
+  "BHV",
+  "Toezicht zwembad"
+ ],
+ "requirementsByLocationType": {
+  "BSO": [
+   "VOG"
+  ],
+  "TSO": [
+   "VOG"
+  ],
+  "School": [
+   "VOG"
+  ],
+  "KDV": [
+   "VOG",
+   "Kinder-EHBO"
+  ],
+  "Zwembad": [
+   "VOG",
+   "EHBO"
+  ]
+ },
+ "employeeLicences": [
+  {
+   "employee": "Noor",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Noor",
+   "type": "Kinder-EHBO",
+   "expiresOn": "2027-06-30"
+  },
+  {
+   "employee": "Tom",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Tom",
+   "type": "Kinder-EHBO",
+   "expiresOn": "2027-06-30"
+  },
+  {
+   "employee": "Tom",
+   "type": "EHBO",
+   "expiresOn": "2027-03-31"
+  },
+  {
+   "employee": "Tom",
+   "type": "Toezicht zwembad",
+   "expiresOn": "2027-12-31"
+  },
+  {
+   "employee": "Lisa",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Daan",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Emma",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Milan",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Milan",
+   "type": "Kinder-EHBO",
+   "expiresOn": "2027-06-30"
+  },
+  {
+   "employee": "Fleur",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Fleur",
+   "type": "Kinder-EHBO",
+   "expiresOn": "2027-06-30"
+  },
+  {
+   "employee": "Jayden",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Jayden",
+   "type": "EHBO",
+   "expiresOn": "2027-03-31"
+  },
+  {
+   "employee": "Sophie",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Ruben",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Eva",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Eva",
+   "type": "EHBO",
+   "expiresOn": "2027-03-31"
+  },
+  {
+   "employee": "Eva",
+   "type": "Toezicht zwembad",
+   "expiresOn": "2027-12-31"
+  },
+  {
+   "employee": "Lotte",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Finn",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Mila",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Mila",
+   "type": "Kinder-EHBO",
+   "expiresOn": "2027-06-30"
+  },
+  {
+   "employee": "Thijs",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Thijs",
+   "type": "Kinder-EHBO",
+   "expiresOn": "2027-06-30"
+  },
+  {
+   "employee": "Julia",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Julia",
+   "type": "Kinder-EHBO",
+   "expiresOn": "2027-06-30"
+  },
+  {
+   "employee": "Sem",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Sem",
+   "type": "Kinder-EHBO",
+   "expiresOn": "2027-06-30"
+  },
+  {
+   "employee": "Anouk",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Anouk",
+   "type": "Kinder-EHBO",
+   "expiresOn": "2027-06-30"
+  },
+  {
+   "employee": "Lars",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Lars",
+   "type": "EHBO",
+   "expiresOn": "2027-03-31"
+  },
+  {
+   "employee": "Iris",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Roos",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Niels",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Niels",
+   "type": "Kinder-EHBO",
+   "expiresOn": "2027-06-30"
+  },
+  {
+   "employee": "Yara",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Koen",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Amber",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Amber",
+   "type": "EHBO",
+   "expiresOn": "2026-10-23"
+  },
+  {
+   "employee": "Gijs",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Gijs",
+   "type": "Kinder-EHBO",
+   "expiresOn": "2027-06-30"
+  },
+  {
+   "employee": "Gijs",
+   "type": "EHBO",
+   "expiresOn": "2027-03-31"
+  },
+  {
+   "employee": "Nina",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Nina",
+   "type": "EHBO",
+   "expiresOn": "2026-10-01"
+  },
+  {
+   "employee": "Nina",
+   "type": "Toezicht zwembad",
+   "expiresOn": "2027-12-31"
+  },
+  {
+   "employee": "Stijn",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Hana",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Daphne",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Daphne",
+   "type": "EHBO",
+   "expiresOn": "2027-03-31"
+  },
+  {
+   "employee": "Teun",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Teun",
+   "type": "EHBO",
+   "expiresOn": "2027-03-31"
+  },
+  {
+   "employee": "Merel",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Olaf",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Liv",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Ties",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Ties",
+   "type": "Kinder-EHBO",
+   "expiresOn": "2027-06-30"
+  },
+  {
+   "employee": "Bo",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Senna",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Jelle",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Fenna",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Sven",
+   "type": "VOG",
+   "expiresOn": null
+  },
+  {
+   "employee": "Lotte",
+   "type": "BHV",
+   "expiresOn": "2027-05-31"
+  },
+  {
+   "employee": "Eva",
+   "type": "BHV",
+   "expiresOn": "2027-05-31"
+  },
+  {
+   "employee": "Tom",
+   "type": "BHV",
+   "expiresOn": "2027-05-31"
+  },
+  {
+   "employee": "Roos",
+   "type": "BHV",
+   "expiresOn": "2027-05-31"
+  },
+  {
+   "employee": "Stijn",
+   "type": "BHV",
+   "expiresOn": "2027-05-31"
+  },
+  {
+   "employee": "Sven",
+   "type": "BHV",
+   "expiresOn": "2026-09-01"
+  },
+  {
+   "employee": "Fleur",
+   "type": "EHBO",
+   "expiresOn": "2027-01-31"
+  },
+  {
+   "employee": "Noor",
+   "type": "EHBO",
+   "expiresOn": "2027-01-31"
+  },
+  {
+   "employee": "Jelle",
+   "type": "EHBO",
+   "expiresOn": "2027-01-31"
+  },
+  {
+   "employee": "Daan",
+   "type": "EHBO",
+   "expiresOn": "2027-01-31"
+  }
+ ],
+ "clients": [
+  {
+   "name": "Kinderopvang Duinstreek",
+   "locations": [
+    "BSO De Duinroos",
+    "KDV De Zandkorrel",
+    "TSO De Fontein",
+    "BSO Sterrenstof",
+    "KDV Het Paddenstoeltje"
+   ]
+  },
+  {
+   "name": "Stichting Kind & Co Leiden",
+   "locations": [
+    "BSO De Kikker",
+    "KDV Bambino",
+    "TSO Het Palet",
+    "BSO Het Klimrek",
+    "TSO De Brug"
+   ]
+  },
+  {
+   "name": "Kinderopvang Oegstgeest",
+   "locations": [
+    "BSO Zonnebloem",
+    "KDV Kleine Kei",
+    "TSO De Regenboog",
+    "BSO De Molenwiek"
+   ]
+  },
+  {
+   "name": "Bollenstreek Kids",
+   "locations": [
+    "BSO Het Speelhuis",
+    "TSO Het Kompas",
+    "BSO Kakelbont"
+   ]
+  },
+  {
+   "name": "Kinderopvang Wassenaar-Voorschoten",
+   "locations": [
+    "BSO De Wilgenhof",
+    "KDV Zonneweide",
+    "BSO De Vlindertuin",
+    "KDV De Pluimpjes"
+   ]
+  },
+  {
+   "name": "Sportbedrijf Kust & Rijn",
+   "locations": [
+    "Zwembad De Zijl",
+    "Zwembad Het Bassin",
+    "Zwembad De Waterlelie",
+    "Zwembad De Branding"
+   ]
+  },
+  {
+   "name": "Scholengroep Rijnland",
+   "locations": [
+    "School De Meidoorn",
+    "School Het Mozaïek",
+    "School De Lindeboom"
+   ]
+  }
+ ],
+ "activities": [
+  {
+   "name": "Jachtseizoen",
+   "packingList": [
+    {
+     "item": "Oranje hesjes",
+     "qty": 8
+    },
+    {
+     "item": "Politiepetten",
+     "qty": 4
+    },
+    {
+     "item": "Walkietalkies",
+     "qty": 4
+    },
+    {
+     "item": "Pionnen",
+     "qty": 10
+    },
+    {
+     "item": "Fluitje",
+     "qty": 1
+    },
+    {
+     "item": "Spelregelkaart",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "name": "Voetbal clinic",
+   "packingList": [
+    {
+     "item": "Voetballen",
+     "qty": 6
+    },
+    {
+     "item": "Hesjes (2 kleuren)",
+     "qty": 12
+    },
+    {
+     "item": "Pionnen",
+     "qty": 16
+    },
+    {
+     "item": "Pop-up goals",
+     "qty": 2
+    },
+    {
+     "item": "Pomp",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "name": "Levend Stratego",
+   "packingList": [
+    {
+     "item": "Rangkaarten rood",
+     "qty": 20
+    },
+    {
+     "item": "Rangkaarten blauw",
+     "qty": 20
+    },
+    {
+     "item": "Vlaggen",
+     "qty": 2
+    },
+    {
+     "item": "Hesjes (2 kleuren)",
+     "qty": 20
+    },
+    {
+     "item": "Scheidsrechterskaart",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "name": "Speurtocht",
+   "packingList": [
+    {
+     "item": "Opdrachtkaarten",
+     "qty": 12
+    },
+    {
+     "item": "Kompassen",
+     "qty": 4
+    },
+    {
+     "item": "Potloden",
+     "qty": 12
+    },
+    {
+     "item": "Schatkist met sloten",
+     "qty": 1
+    },
+    {
+     "item": "Plattegronden",
+     "qty": 6
+    }
+   ]
+  },
+  {
+   "name": "Apenkooien",
+   "packingList": [
+    {
+     "item": "Lintjes (tikkers)",
+     "qty": 6
+    },
+    {
+     "item": "Spelregelkaart",
+     "qty": 1
+    },
+    {
+     "item": "Fluitje",
+     "qty": 1
+    },
+    {
+     "item": "EHBO-tasje",
+     "qty": 1
+    }
+   ]
+  },
+  {
+   "name": "Zwemspelletjes",
+   "packingList": [
+    {
+     "item": "Duikringen",
+     "qty": 10
+    },
+    {
+     "item": "Drijfplankjes",
+     "qty": 8
+    },
+    {
+     "item": "Zwemvleugels",
+     "qty": 6
+    },
+    {
+     "item": "Waterbal",
+     "qty": 2
+    }
+   ]
+  }
+ ],
+ "bags": [
+  {
+   "activity": "Jachtseizoen",
+   "label": "Jachtseizoen tas 1"
+  },
+  {
+   "activity": "Jachtseizoen",
+   "label": "Jachtseizoen tas 2"
+  },
+  {
+   "activity": "Voetbal clinic",
+   "label": "Voetbal clinic tas 1"
+  },
+  {
+   "activity": "Voetbal clinic",
+   "label": "Voetbal clinic tas 2"
+  },
+  {
+   "activity": "Levend Stratego",
+   "label": "Levend Stratego tas 1"
+  },
+  {
+   "activity": "Speurtocht",
+   "label": "Speurtocht tas 1"
+  },
+  {
+   "activity": "Apenkooien",
+   "label": "Apenkooien tas 1"
+  },
+  {
+   "activity": "Zwemspelletjes",
+   "label": "Zwemspelletjes tas 1"
+  }
+ ],
+ "shiftExtras": [
+  {
+   "code": "D002",
+   "activity": "Jachtseizoen",
+   "bag": "Jachtseizoen tas 1",
+   "extraRequirements": []
+  },
+  {
+   "code": "D003",
+   "activity": "Jachtseizoen",
+   "bag": "Jachtseizoen tas 1",
+   "extraRequirements": []
+  },
+  {
+   "code": "D008",
+   "activity": "Jachtseizoen",
+   "bag": "Jachtseizoen tas 1",
+   "extraRequirements": []
+  },
+  {
+   "code": "D009",
+   "activity": "Jachtseizoen",
+   "bag": "Jachtseizoen tas 1",
+   "extraRequirements": []
+  },
+  {
+   "code": "D013",
+   "activity": "Voetbal clinic",
+   "bag": "Voetbal clinic tas 1",
+   "extraRequirements": []
+  },
+  {
+   "code": "D014",
+   "activity": "Zwemspelletjes",
+   "bag": "Zwemspelletjes tas 1",
+   "extraRequirements": []
+  },
+  {
+   "code": "D016",
+   "activity": "Voetbal clinic",
+   "bag": "Voetbal clinic tas 1",
+   "extraRequirements": []
+  },
+  {
+   "code": "D019",
+   "activity": "Zwemspelletjes",
+   "bag": "Zwemspelletjes tas 1",
+   "extraRequirements": []
+  },
+  {
+   "code": "D028",
+   "activity": "Levend Stratego",
+   "bag": "Levend Stratego tas 1",
+   "extraRequirements": []
+  },
+  {
+   "code": "D037",
+   "activity": "Voetbal clinic",
+   "bag": "Voetbal clinic tas 1",
+   "extraRequirements": [
+    "BHV"
+   ]
+  },
+  {
+   "code": "D039",
+   "activity": "Levend Stratego",
+   "bag": "Levend Stratego tas 1",
+   "extraRequirements": []
+  },
+  {
+   "code": "D040",
+   "activity": "Jachtseizoen",
+   "bag": "Jachtseizoen tas 1",
+   "extraRequirements": []
+  },
+  {
+   "code": "D049",
+   "activity": "Jachtseizoen",
+   "bag": "Jachtseizoen tas 2",
+   "extraRequirements": []
+  },
+  {
+   "code": "D050",
+   "activity": "Voetbal clinic",
+   "bag": "Voetbal clinic tas 1",
+   "extraRequirements": []
+  },
+  {
+   "code": "D056",
+   "activity": "Levend Stratego",
+   "bag": "Levend Stratego tas 1",
+   "extraRequirements": []
+  },
+  {
+   "code": "D059",
+   "activity": "Levend Stratego",
+   "bag": "Levend Stratego tas 1",
+   "extraRequirements": []
+  },
+  {
+   "code": "D060",
+   "activity": "Jachtseizoen",
+   "bag": "Jachtseizoen tas 2",
+   "extraRequirements": []
+  },
+  {
+   "code": "D064",
+   "activity": null,
+   "bag": null,
+   "extraRequirements": [
+    "BHV"
+   ]
+  },
+  {
+   "code": "D066",
+   "activity": "Jachtseizoen",
+   "bag": "Jachtseizoen tas 1",
+   "extraRequirements": []
+  },
+  {
+   "code": "D068",
+   "activity": "Voetbal clinic",
+   "bag": "Voetbal clinic tas 1",
+   "extraRequirements": []
+  },
+  {
+   "code": "D073",
+   "activity": "Jachtseizoen",
+   "bag": "Jachtseizoen tas 2",
+   "extraRequirements": []
+  },
+  {
+   "code": "D093",
+   "activity": "Levend Stratego",
+   "bag": "Levend Stratego tas 1",
+   "extraRequirements": []
+  },
+  {
+   "code": "D097",
+   "activity": "Jachtseizoen",
+   "bag": "Jachtseizoen tas 2",
+   "extraRequirements": []
+  },
+  {
+   "code": "D139",
+   "activity": "Jachtseizoen",
+   "bag": "Jachtseizoen tas 2",
+   "extraRequirements": []
+  },
+  {
+   "code": "D242",
+   "activity": "Speurtocht",
+   "bag": "Speurtocht tas 1",
+   "extraRequirements": []
+  },
+  {
+   "code": "D245",
+   "activity": "Speurtocht",
+   "bag": "Speurtocht tas 1",
+   "extraRequirements": []
+  }
+ ],
+ "requests": [
+  {
+   "client": "Sportbedrijf Kust & Rijn",
+   "location": "Zwembad De Zijl",
+   "rule": {
+    "kind": "once",
+    "date": "2026-10-23"
+   },
+   "start": "15:00",
+   "end": "17:00",
+   "function": "Aqualessen",
+   "activity": "Zwemspelletjes",
+   "note": "Extra lesgroep in de herfstvakantie-week"
+  },
+  {
+   "client": "Kinderopvang Duinstreek",
+   "location": "BSO De Duinroos",
+   "rule": {
+    "kind": "dates",
+    "dates": [
+     "2026-10-26",
+     "2026-10-28"
+    ]
+   },
+   "start": "14:45",
+   "end": "18:00",
+   "function": "KidzCoach",
+   "activity": "Jachtseizoen",
+   "note": "Graag iemand die de kinderen al kent"
+  },
+  {
+   "client": "Scholengroep Rijnland",
+   "location": "School De Meidoorn",
+   "rule": {
+    "kind": "weekly",
+    "weekdays": [
+     2
+    ],
+    "interval": 1,
+    "from": "2026-11-03",
+    "to": "2026-11-24"
+   },
+   "start": "13:00",
+   "end": "15:00",
+   "function": "Gymdocent",
+   "activity": null,
+   "note": "Vervanging vaste gymdocent"
+  }
+ ]
+}
