@@ -20,6 +20,8 @@
 - *Beveiliging.* De database-adviseur gaf een waarschuwing. Die was op zich bedoeld, maar bracht me op een echt risico: iemand kon eindeloos nieuwe demo-omgevingen aanmaken. Dat heb ik dichtgezet.
 - *Eerlijke teksten.* Een melding beloofde dat de opdrachtgever een wijziging zag, ook als er geen bericht werd verstuurd. Aangepast.
 
+**Uitbreiding (licenties, opdrachtgevers, sporttassen).** De testdata bevatte geen licenties, opdrachtgevers of tassen. Ik heb daar een kleine fictieve aanvulling voor gemaakt in een apart bestand, met een eigen script dat de bedoelde conflicten en valkuilen narekent. De controle op jullie eigen data blijft precies 15 conflicten. Ook hier stuurde ik bij: de AI plande activiteiten op ochtenddiensten van 07:30 (onrealistisch), en de live controle zou een tas bij een andere coach over het hoofd zien; dat heb ik eerst met een falende test aangetoond en daarna opgelost.
+
 **Privacy en testen.** Alleen de fictieve testdata. Elke login is afgeschermd met Row Level Security in de database. Het wijzigingslog kan niet worden aangepast of verwijderd. De reden van een afmelding (bijvoorbeeld ziek) gaat niet naar de opdrachtgever. Een e-mailadres voor de demo-mail wordt niet opgeslagen. Demo-omgevingen verdwijnen na 7 dagen.
 
 **Wat nog niet af is.** Rollen worden in de demo nagebootst ("Bekijk als") in plaats van echte accounts. Conflicten worden in de browser berekend; voor een jaar aan data zou ik dat per week op de server doen.
