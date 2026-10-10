@@ -24,3 +24,17 @@ Running notes on how AI (Claude Code) was used, what was decided, and what had t
   - npm peer conflict (vitest 5 needs @types/node 22+); fixed by aligning @types/node with the installed Node 22 instead of using --legacy-peer-deps.
   - shadcn now installs a package called `cn` instead of clsx + tailwind-merge; checked it is shadcn's own package (repo shadcn-ui/cn) before accepting it.
   - A recurrence test had a confused comment written mid-reasoning; rewrote it to state the anchoring rule ("the week of the start date is week 0").
+
+## 2026-10-10: database, screens and verification
+
+- Supabase: schema with RLS per workspace, append-only change log (no UPDATE/DELETE grant), seed function, cleanup cron.
+- Verified instead of assumed:
+  - Seed data copied into the database: compared an md5 checksum over all 293 shifts in Postgres with the same checksum over the local JSON. Identical.
+  - Isolation: simulated two anonymous users in one SQL transaction. User 2 sees only their own 293 shifts and not user 1's change; reset restores. Tried to UPDATE the change log as a user: "permission denied".
+  - Supabase security advisor flagged the two RPCs as callable by signed-in users. That is intended (they only touch the caller's own workspace), but it made me spot a real risk: calling create_workspace in a loop could fill the database. Made it idempotent (one workspace per visitor, unique constraint).
+- Corrections I made to AI output:
+  - Next 16 Cache Components threw "Date.now() during prerender" (inside supabase-js). Fix from the bundled docs: `await connection()` before request-time data.
+  - Pages looked stuck on the loading skeleton in the in-app browser. Instead of changing code, inspected the DOM: the content had arrived in hidden Suspense containers and `document.hidden` was true. React waits for an animation frame to reveal streamed content, and hidden panes pause those. Not an app bug; nothing changed.
+  - ESLint (React compiler rules) caught a component defined inside render (ListView table header) and unescaped quotes. Fixed.
+  - The employee "Aannemen" toast promised that the client would see the change, even when no message is sent (change outside the notice period). Made it depend on whether a message was actually created.
+- Tests: 64 unit tests (golden test included) and one Playwright end-to-end test (login, conflicts, krap, remove with reason, log, outbox). Production build green.
