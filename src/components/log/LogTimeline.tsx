@@ -13,7 +13,7 @@ type Row = Record<string, unknown> | null;
 export interface LogEntry {
   id: string;
   at: string;
-  actor_role: "planner" | "medewerker" | "systeem";
+  actor_role: "planner" | "medewerker" | "opdrachtgever" | "systeem";
   actor_name: string;
   acting_as: string | null;
   action: string;
@@ -49,6 +49,23 @@ const ACTIONS: Record<string, string> = {
   employee_cancelled_self: "Afgemeld door medewerker",
   open_shift_accepted: "Open dienst aangenomen",
   availability_changed: "Beschikbaarheid",
+  request_created: "Aanvraag ontvangen",
+  request_approved: "Aanvraag goedgekeurd",
+  request_rejected: "Aanvraag afgewezen",
+  location_added: "Locatie toegevoegd",
+  location_archived: "Locatie gearchiveerd",
+  material_reported: "Materiaal mist",
+  material_resolved: "Materiaal opgelost",
+  bag_changed: "Tas gewijzigd",
+};
+
+/** Actions whose `reason` field holds context rather than a reason. */
+const NEUTRAL_REASON: Record<string, string> = {
+  shift_created: "Herhaling",
+  request_created: "Wanneer",
+  location_archived: "Let op",
+  material_reported: "Melding",
+  availability_changed: "Reden",
 };
 
 const FIELDS: [string, string][] = [
@@ -60,6 +77,9 @@ const FIELDS: [string, string][] = [
   ["function", "Functie"],
   ["status", "Status"],
   ["note", "Opmerking"],
+  ["bag_id", "Tas"],
+  ["activity_id", "Activiteit"],
+  ["extra_requirements", "Extra eisen"],
 ];
 
 const time = (iso: string) => new Date(iso).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" });
@@ -98,6 +118,14 @@ export function LogTimeline({ entries, cancelled, employeeNames, locationNames }
         const when = r ? `${shortDate(String(r.date))} ${String(r.start_time).slice(0, 5)}-${String(r.end_time).slice(0, 5)}` : "";
         return e.after ? `gaf door: ${emp(r?.employee_id)} niet beschikbaar ${when}` : `haalde niet-beschikbaar weg voor ${emp(r?.employee_id)} (${when})`;
       }
+      case "request_created": return "vroeg diensten aan";
+      case "request_approved": return "keurde een aanvraag goed";
+      case "request_rejected": return "wees een aanvraag af";
+      case "location_added": return `voegde locatie ${String(e.after?.name ?? "")} toe`;
+      case "location_archived": return `archiveerde locatie ${String(e.before?.name ?? "")}`;
+      case "material_reported": return `meldde dat er iets mist${e.after?.shift_code ? ` (${String(e.after.shift_code)})` : ""}`;
+      case "material_resolved": return "markeerde een materiaalmelding als opgelost";
+      case "bag_changed": return `wijzigde de tas van ${code}`;
       default: return e.action;
     }
   };
@@ -175,6 +203,7 @@ export function LogTimeline({ entries, cancelled, employeeNames, locationNames }
               <option value="">Iedereen</option>
               <option value="planner">Planner</option>
               <option value="medewerker">Medewerker</option>
+              <option value="opdrachtgever">Opdrachtgever</option>
             </NativeSelect>
           </div>
 
@@ -199,7 +228,7 @@ export function LogTimeline({ entries, cancelled, employeeNames, locationNames }
                         <span className="font-medium">
                           {e.actor_name}
                           <span className="font-normal text-muted-foreground">
-                            {e.actor_role === "planner" ? " (planner)" : `, ${e.acting_as ?? "medewerker"}`}
+                            {e.actor_role === "planner" ? " (planner)" : `, ${e.acting_as ?? e.actor_role}`}
                           </span>
                         </span>
                         <span>
@@ -217,8 +246,8 @@ export function LogTimeline({ entries, cancelled, employeeNames, locationNames }
                         <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{ACTIONS[e.action]}</span>
                       </div>
                       {e.reason && (
-                        <p className={cn("mt-1.5 border-l-2 pl-2", e.action === "shift_created" ? "border-border text-muted-foreground" : "border-primary")}>
-                          {e.action === "shift_created" ? `Herhaling: ${e.reason}` : <>Reden: <span className="font-medium">{e.reason}</span></>}
+                        <p className={cn("mt-1.5 border-l-2 pl-2", NEUTRAL_REASON[e.action] ? "border-border text-muted-foreground" : "border-primary")}>
+                          {NEUTRAL_REASON[e.action] ? `${NEUTRAL_REASON[e.action]}: ${e.reason}` : <>Reden: <span className="font-medium">{e.reason}</span></>}
                         </p>
                       )}
                       {changed.length > 0 && (

@@ -3,7 +3,8 @@ import { connection } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { Message } from "@/components/berichten/Outbox";
 
-export async function loadMessages(locationId?: string): Promise<Message[]> {
+/** All client messages, or only those for the given locations (a client organisation). */
+export async function loadMessages(locationIds?: string[]): Promise<Message[]> {
   await connection();
   const sb = await supabaseServer();
   let q = sb
@@ -11,7 +12,7 @@ export async function loadMessages(locationId?: string): Promise<Message[]> {
     .select("id, at, subject, body, emailed_at, location_id, locations(name)")
     .order("at", { ascending: false })
     .limit(200);
-  if (locationId) q = q.eq("location_id", locationId);
+  if (locationIds) q = q.in("location_id", locationIds);
   const { data, error } = await q;
   if (error) throw error;
   return (data ?? []).map((m) => ({

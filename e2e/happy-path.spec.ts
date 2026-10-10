@@ -10,9 +10,10 @@ test("planner sees conflicts, removes an employee with a reason, and finds it in
   // Monday: Tom has an overlap and Noor too little travel time.
   await expect(page.getByRole("article", { name: "Dag van Tom" }).getByText(/overlapt met/).first()).toBeVisible();
   await expect(page.getByRole("article", { name: "Dag van Noor" }).getByText(/Te weinig reistijd/).first()).toBeVisible();
-  // The whole week has exactly 24 shifts involved in a conflict (15 conflicts).
+  // The whole week: 24 shifts in the 15 original conflicts, plus 5 from the self-made extra data
+  // (licences: D037, D094, D125, D253; bag double: D066, its partner D003 is already in an overlap).
   await page.getByRole("tab", { name: "Week" }).click();
-  await expect(page.getByRole("button", { name: /Alleen conflicten \(24\)/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Alleen conflicten \(29\)/ })).toBeVisible();
 
   // Friday: Gijs has exactly enough travel time, which is shown as tight, not as a conflict.
   await page.goto("/planbord?d=2026-10-23");
