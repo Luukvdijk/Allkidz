@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { CalendarDays, CalendarOff, ChevronLeft, ChevronRight, Inbox, MapPin, Trash2 } from "lucide-react";
+import { Backpack, CalendarDays, CalendarOff, ChevronDown, ChevronLeft, ChevronRight, Inbox, MapPin, Trash2, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "cn";
 import type { Employee, PlanData, Shift } from "@/lib/types";
@@ -11,6 +11,10 @@ import { durationMin, hoursLabel } from "@/lib/hours";
 import type { Actor } from "@/lib/data/actor";
 import { assignEmployee } from "@/app/actions/shifts";
 import { addUnavailability, removeUnavailability } from "@/app/actions/availability";
+import { reportMissing } from "@/app/actions/materials";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { LicenceList } from "@/components/profile/LicenceList";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +23,7 @@ import { ConflictLine } from "@/components/planbord/ConflictBadge";
 import { PlanProvider, usePlan, type Workspace } from "@/components/planbord/PlanContext";
 import { RemoveDialog, type RemoveState } from "@/components/shift/RemoveDialog";
 
-type Tab = "diensten" | "beschikbaar" | "open";
+type Tab = "diensten" | "beschikbaar" | "open" | "profiel";
 type Range = "dag" | "week" | "maand";
 const byStart = (a: Shift, b: Shift) => a.date.localeCompare(b.date) || toMin(a.start) - toMin(b.start);
 
@@ -50,15 +54,17 @@ function Phone({ employee, actor }: { employee: Employee; actor: Actor }) {
         {conflicts > 0 && <p className="mt-2 rounded-md bg-white/15 px-2 py-1 text-xs">Let op: {conflicts} van je diensten {conflicts === 1 ? "heeft" : "hebben"} een probleem. De planner kijkt ernaar.</p>}
       </header>
       <div className="flex-1 overflow-y-auto p-3">
-        {tab === "diensten" && <MyShifts mine={mine} />}
+        {tab === "diensten" && <MyShifts mine={mine} actor={actor} />}
         {tab === "beschikbaar" && <Availability employee={employee} actor={actor} />}
         {tab === "open" && <OpenShifts employee={employee} actor={actor} />}
+        {tab === "profiel" && <Profile employee={employee} />}
       </div>
-      <nav className="grid grid-cols-3 border-t bg-card" aria-label="Medewerker-app">
+      <nav className="grid grid-cols-4 border-t bg-card" aria-label="Medewerker-app">
         {([
           ["diensten", "Diensten", CalendarDays],
           ["beschikbaar", "Beschikbaar", CalendarOff],
-          ["open", "Open diensten", Inbox],
+          ["open", "Open", Inbox],
+          ["profiel", "Profiel", UserRound],
         ] as const).map(([t, label, Icon]) => (
           <button
             key={t}
@@ -76,7 +82,7 @@ function Phone({ employee, actor }: { employee: Employee; actor: Actor }) {
   );
 }
 
-function ShiftCard({ s }: { s: Shift }) {
+function ShiftCard({ s, actor }: { s: Shift; actor: Actor }) {
   const { locations, byShift, remove, ws } = usePlan();
   const loc = locations.get(s.locationId)!;
   const conflicts = byShift.get(s.id) ?? [];
@@ -107,6 +113,7 @@ function ShiftCard({ s }: { s: Shift }) {
           ))}
         </div>
       )}
+      {s.bagId && <BagPanel s={s} actor={actor} />}
       {!past && (
         <Button variant="outline" size="sm" className="mt-2 w-full" onClick={() => remove(s, "employee")}>
           Afmelden
@@ -116,7 +123,7 @@ function ShiftCard({ s }: { s: Shift }) {
   );
 }
 
-function MyShifts({ mine }: { mine: Shift[] }) {
+function MyShifts({ mine, actor }: { mine: Shift[]; actor: Actor }) {
   const [range, setRange] = useState<Range>("week");
   const [date, setDate] = useState(() => mine[0]?.date ?? "2026-10-19");
   const monday = mondayOf(date);
@@ -178,7 +185,7 @@ function MyShifts({ mine }: { mine: Shift[] }) {
         <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">Geen diensten in deze periode.</p>
       ) : range === "dag" ? (
         <ul className="space-y-2">
-          {inRange.map((s) => <ShiftCard key={s.id} s={s} />)}
+          {inRange.map((s) => <ShiftCard key={s.id} s={s} actor={actor} />)}
         </ul>
       ) : (
         <div className="space-y-3">
@@ -186,7 +193,7 @@ function MyShifts({ mine }: { mine: Shift[] }) {
             <section key={d}>
               <h3 className="mb-1 text-xs font-semibold text-muted-foreground uppercase">{shortDate(d)}</h3>
               <ul className="space-y-2">
-                {inRange.filter((s) => s.date === d).map((s) => <ShiftCard key={s.id} s={s} />)}
+                {inRange.filter((s) => s.date === d).map((s) => <ShiftCard key={s.id} s={s} actor={actor} />)}
               </ul>
             </section>
           ))}
@@ -378,6 +385,118 @@ function OpenShifts({ employee, actor }: { employee: Employee; actor: Actor }) {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+const storageKey = (shiftId: string) => `paklijst:${shiftId}`;
+
+/** "Neem mee": the bag for this shift, its packing list as a checklist (ticks only on this device) and a missing-items report. */
+function BagPanel({ s, actor }: { s: Shift; actor: Actor }) {
+  const { data } = usePlan();
+  const bag = data.bags?.find((b) => b.id === s.bagId);
+  const activity = data.activities?.find((a) => a.id === bag?.activityId);
+  const [open, setOpen] = useState(false);
+  const [ticked, setTicked] = useState<string[]>([]);
+  const [reporting, setReporting] = useState(false);
+  const [text, setText] = useState("");
+  const [pending, start] = useTransition();
+  if (!bag || !activity) return null;
+
+  const toggleOpen = () => {
+    if (!open) {
+      try {
+        setTicked(JSON.parse(localStorage.getItem(storageKey(s.id)) ?? "[]"));
+      } catch {
+        setTicked([]);
+      }
+    }
+    setOpen(!open);
+  };
+  const tick = (item: string, on: boolean) => {
+    const next = on ? [...ticked, item] : ticked.filter((x) => x !== item);
+    setTicked(next);
+    try {
+      localStorage.setItem(storageKey(s.id), JSON.stringify(next));
+    } catch {
+      // storage unavailable (private mode): the checklist still works for this visit
+    }
+  };
+  const send = () =>
+    start(async () => {
+      const r = await reportMissing(s.id, actor, text);
+      if ("error" in r) {
+        toast.error(r.error);
+        return;
+      }
+      toast.success("Gemeld", { description: "De planner ziet het op het tassenoverzicht." });
+      setText("");
+      setReporting(false);
+    });
+
+  return (
+    <div className="mt-2 rounded-lg bg-accent/60 p-2 text-sm">
+      <button type="button" onClick={toggleOpen} aria-expanded={open} className="flex w-full items-center gap-2 text-left">
+        <Backpack className="size-4 text-accent-foreground" aria-hidden />
+        <span className="flex-1">
+          Neem mee: <span className="font-medium">{bag.label}</span>
+        </span>
+        {open && <span className="text-xs text-muted-foreground tabular-nums">{ticked.length}/{activity.packingList.length}</span>}
+        <ChevronDown className={cn("size-4 transition-transform", open && "rotate-180")} aria-hidden />
+      </button>
+      {open && (
+        <div className="mt-2 space-y-1.5">
+          <ul className="space-y-1">
+            {activity.packingList.map((p) => (
+              <li key={p.item}>
+                <label className="flex items-center gap-2">
+                  <Checkbox checked={ticked.includes(p.item)} onCheckedChange={(on) => tick(p.item, Boolean(on))} />
+                  <span className={cn(ticked.includes(p.item) && "text-muted-foreground line-through")}>
+                    {p.qty}x {p.item}
+                  </span>
+                </label>
+              </li>
+            ))}
+          </ul>
+          {reporting ? (
+            <div className="space-y-1.5">
+              <Textarea rows={2} value={text} onChange={(e) => setText(e.target.value)} placeholder="Bijv. 2 walkietalkies missen" aria-label="Wat mist er?" />
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => setReporting(false)}>
+                  Annuleren
+                </Button>
+                <Button size="sm" onClick={send} disabled={pending || !text.trim()}>
+                  Meld aan planner
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button size="sm" variant="ghost" className="w-full" onClick={() => setReporting(true)}>
+              Er mist iets
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Profile({ employee }: { employee: Employee }) {
+  const { data, ws } = usePlan();
+  const licences = (data.licences ?? []).filter((l) => l.employeeId === employee.id);
+  return (
+    <div className="space-y-4">
+      <section className="rounded-xl border bg-card p-3">
+        <h2 className="text-sm font-semibold">{employee.name}</h2>
+        <p className="text-sm text-muted-foreground">{employee.functions.join(", ")}</p>
+      </section>
+      <section className="rounded-xl border bg-card p-3">
+        <h2 className="mb-2 text-sm font-semibold">Mijn licenties</h2>
+        <LicenceList licences={licences} today={ws.today} />
+        <p className="mt-3 text-xs text-muted-foreground">
+          Opdrachtgevers zien alleen je voornaam, functies en of je licenties in orde zijn. Nooit je achternaam, geboortedatum of BSN.
+        </p>
+      </section>
     </div>
   );
 }
