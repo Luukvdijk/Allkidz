@@ -22,6 +22,9 @@ import { logout, resetDemo } from "@/app/actions/demo";
 
 const NAV = [
   { href: "/planbord", label: "Planbord" },
+  { href: "/aanvragen", label: "Aanvragen" },
+  { href: "/tassen", label: "Tassen" },
+  { href: "/medewerkers", label: "Medewerkers" },
   { href: "/log", label: "Wijzigingslog" },
   { href: "/berichten", label: "Berichten" },
   { href: "/instellingen", label: "Instellingen" },
@@ -29,11 +32,12 @@ const NAV = [
 
 interface Props {
   employees: { id: string; name: string }[];
-  locations: { id: string; name: string }[];
+  clients: { id: string; name: string }[];
   messageCount: number;
+  requestCount: number;
 }
 
-export function AppHeader({ employees, locations, messageCount }: Props) {
+export function AppHeader({ employees, clients, messageCount, requestCount }: Props) {
   const pathname = usePathname();
   const plannerView = !pathname.startsWith("/medewerker") && !pathname.startsWith("/opdrachtgever");
   const [resetOpen, setResetOpen] = useState(false);
@@ -61,13 +65,13 @@ export function AppHeader({ employees, locations, messageCount }: Props) {
         </Link>
 
         {plannerView && (
-          <nav aria-label="Hoofdmenu" className="hidden gap-1 md:flex">
-            <NavLinks pathname={pathname} messageCount={messageCount} />
+          <nav aria-label="Hoofdmenu" className="hidden gap-0.5 xl:flex">
+            <NavLinks pathname={pathname} counts={{ "/berichten": messageCount, "/aanvragen": requestCount }} />
           </nav>
         )}
 
-        <div className="ml-auto hidden items-center gap-2 md:flex">
-          <RoleSwitcher employees={employees} locations={locations} />
+        <div className="ml-auto hidden items-center gap-2 xl:flex">
+          <RoleSwitcher employees={employees} clients={clients} />
           <Button variant="ghost" size="sm" onClick={() => setResetOpen(true)} title="Demo resetten">
             <RotateCcw />
             <span className="hidden lg:inline">Reset demo</span>
@@ -79,9 +83,9 @@ export function AppHeader({ employees, locations, messageCount }: Props) {
           </form>
         </div>
 
-        <Button variant="ghost" size="icon" className="relative ml-auto md:hidden" aria-label="Menu openen" onClick={() => setMenuOpen(true)}>
+        <Button variant="ghost" size="icon" className="relative ml-auto xl:hidden" aria-label="Menu openen" onClick={() => setMenuOpen(true)}>
           <Menu className="size-5" />
-          {plannerView && messageCount > 0 && <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-primary" aria-hidden />}
+          {plannerView && messageCount + requestCount > 0 && <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-primary" aria-hidden />}
         </Button>
       </div>
 
@@ -93,11 +97,11 @@ export function AppHeader({ employees, locations, messageCount }: Props) {
           <div className="flex flex-1 flex-col gap-6 p-4">
             <div className="grid gap-1.5">
               <span className="text-xs font-medium text-muted-foreground uppercase">Bekijk als</span>
-              <RoleSwitcher employees={employees} locations={locations} fullWidth onNavigate={() => setMenuOpen(false)} />
+              <RoleSwitcher employees={employees} clients={clients} fullWidth onNavigate={() => setMenuOpen(false)} />
             </div>
             {plannerView && (
               <nav aria-label="Hoofdmenu" className="grid gap-1">
-                <NavLinks pathname={pathname} messageCount={messageCount} large onNavigate={() => setMenuOpen(false)} />
+                <NavLinks pathname={pathname} counts={{ "/berichten": messageCount, "/aanvragen": requestCount }} large onNavigate={() => setMenuOpen(false)} />
               </nav>
             )}
             <div className="mt-auto grid gap-2 border-t pt-4">
@@ -134,7 +138,7 @@ export function AppHeader({ employees, locations, messageCount }: Props) {
   );
 }
 
-function NavLinks({ pathname, messageCount, large = false, onNavigate }: { pathname: string; messageCount: number; large?: boolean; onNavigate?: () => void }) {
+function NavLinks({ pathname, counts, large = false, onNavigate }: { pathname: string; counts: Record<string, number>; large?: boolean; onNavigate?: () => void }) {
   return NAV.map((n) => {
     const active = pathname.startsWith(n.href);
     return (
@@ -150,8 +154,8 @@ function NavLinks({ pathname, messageCount, large = false, onNavigate }: { pathn
         )}
       >
         {n.label}
-        {n.href === "/berichten" && messageCount > 0 && (
-          <span className="ml-1.5 rounded-full bg-primary px-1.5 text-[11px] font-medium text-primary-foreground">{messageCount}</span>
+        {(counts[n.href] ?? 0) > 0 && (
+          <span className="ml-1.5 rounded-full bg-primary px-1.5 text-[11px] font-medium text-primary-foreground">{counts[n.href]}</span>
         )}
       </Link>
     );

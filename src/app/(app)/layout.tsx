@@ -7,12 +7,16 @@ import { supabaseServer } from "@/lib/supabase/server";
 async function Header() {
   const { data } = await loadWorkspace();
   const sb = await supabaseServer();
-  const { count } = await sb.from("client_messages").select("id", { count: "exact", head: true });
+  const [{ count }, { count: requestCount }] = await Promise.all([
+    sb.from("client_messages").select("id", { count: "exact", head: true }),
+    sb.from("shift_requests").select("id", { count: "exact", head: true }).eq("status", "aangevraagd"),
+  ]);
   return (
     <AppHeader
       employees={data.employees.map((e) => ({ id: e.id, name: e.name }))}
-      locations={data.locations.map((l) => ({ id: l.id, name: l.name }))}
+      clients={(data.clients ?? []).map((c) => ({ id: c.id, name: c.name }))}
       messageCount={count ?? 0}
+      requestCount={requestCount ?? 0}
     />
   );
 }

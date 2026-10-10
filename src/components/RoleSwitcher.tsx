@@ -5,11 +5,11 @@ import { NativeSelect } from "@/components/ui/native-select";
 
 interface Props {
   employees: { id: string; name: string }[];
-  locations: { id: string; name: string }[];
+  clients: { id: string; name: string }[];
 }
 
 /** "Bekijk als": switch between the planner, an employee (phone view) and a client, inside the same sandbox. */
-export function RoleSwitcher({ employees, locations, fullWidth = false, onNavigate }: Props & { fullWidth?: boolean; onNavigate?: () => void }) {
+export function RoleSwitcher({ employees, clients, fullWidth = false, onNavigate }: Props & { fullWidth?: boolean; onNavigate?: () => void }) {
   const router = useRouter();
   const pathname = usePathname();
   const [, section, id] = pathname.split("/");
@@ -36,9 +36,9 @@ export function RoleSwitcher({ employees, locations, fullWidth = false, onNaviga
           ))}
         </optgroup>
         <optgroup label="Opdrachtgever">
-          {locations.map((l) => (
-            <option key={l.id} value={`/opdrachtgever/${l.id}`}>
-              {l.name}
+          {clients.map((c) => (
+            <option key={c.id} value={`/opdrachtgever/${c.id}`}>
+              {c.name}
             </option>
           ))}
         </optgroup>

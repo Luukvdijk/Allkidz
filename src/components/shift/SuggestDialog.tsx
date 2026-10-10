@@ -6,7 +6,8 @@ import { toast } from "sonner";
 import type { Shift } from "@/lib/types";
 import { rankCandidates } from "@/lib/suggest";
 import { hoursLabel } from "@/lib/hours";
-import { shortDate } from "@/lib/time";
+import { dayMonth, shortDate } from "@/lib/time";
+import { requiredLicences } from "@/lib/licences";
 import { PLANNER } from "@/lib/data/actor";
 import { assignEmployee } from "@/app/actions/shifts";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,14 @@ function Suggestions({ shift, onClose }: { shift: Shift; onClose: () => void }) 
   const [pending, start] = useTransition();
   const candidates = useMemo(() => rankCandidates(data, shift), [data, shift]);
   const loc = locations.get(shift.locationId)!;
+  const required = data.requirements ? requiredLicences(shift, loc.type, data.requirements).filter((l) => l !== "VOG") : [];
+  const licenceLine = (employeeId: string) =>
+    required
+      .map((type) => {
+        const l = data.licences?.find((x) => x.employeeId === employeeId && x.type === type);
+        return l?.expiresOn ? `${type} geldig t/m ${dayMonth(l.expiresOn)}` : `${type} in orde`;
+      })
+      .join(" · ");
 
   const plan = (employeeId: string, name: string) =>
     start(async () => {
@@ -46,7 +55,7 @@ function Suggestions({ shift, onClose }: { shift: Shift; onClose: () => void }) 
         </DialogTitle>
         <DialogDescription>
           <span className="first-letter:uppercase">{shortDate(shift.date)}</span> {shift.start}-{shift.end}, {loc.name}, {shift.fn}. Alleen medewerkers met
-          deze functie die beschikbaar zijn, niet overlappen en genoeg reistijd hebben. Minste uren deze week eerst.
+          deze functie{required.length > 0 ? ` en geldige ${required.join(", ")}` : ""} die beschikbaar zijn, niet overlappen en genoeg reistijd hebben. Minste uren deze week eerst.
         </DialogDescription>
       </DialogHeader>
       {candidates.length === 0 ? (
@@ -61,6 +70,7 @@ function Suggestions({ shift, onClose }: { shift: Shift; onClose: () => void }) 
                 <span className="block text-xs text-muted-foreground">
                   {hoursLabel(c.weekMinutes)} deze week · {c.dayShifts === 0 ? "nog vrij die dag" : `${c.dayShifts} andere dienst${c.dayShifts === 1 ? "" : "en"} die dag`}
                 </span>
+                {required.length > 0 && <span className="block text-xs text-ok">{licenceLine(c.employeeId)}</span>}
               </span>
               <Button size="sm" variant={i === 0 ? "default" : "outline"} disabled={pending} onClick={() => plan(c.employeeId, c.name)}>
                 Inplannen

@@ -7,6 +7,8 @@ import { cn } from "cn";
 import type { Conflict, Location, Shift } from "@/lib/types";
 import { conflictsIfAssigned } from "@/lib/conflicts";
 import { expandRule } from "@/lib/recurrence";
+import { pickBag } from "@/lib/bags";
+import { Checkbox } from "@/components/ui/checkbox";
 import { shortDate } from "@/lib/time";
 import { PLANNER } from "@/lib/data/actor";
 import { createShifts, updateShift } from "@/app/actions/shifts";
@@ -21,6 +23,8 @@ import { usePlan } from "@/components/planbord/PlanContext";
 import { RecurrenceInput, initialRecurrence, toRule, type RecurrenceState } from "./RecurrenceInput";
 
 const FUNCTIONS = ["KidzCoach", "Toezichthouder", "Aqualessen", "Zwemonderwijzer", "Gymdocent"];
+const LICENCES = ["VOG", "EHBO", "Kinder-EHBO", "BHV", "Toezicht zwembad"];
+const AUTO = "__auto__";
 
 /** Sensible default function for a location type (the client can still pick any). */
 export function defaultFunction(loc?: Location): string {
@@ -63,6 +67,10 @@ function ShiftForm({ state, onClose, onCreated }: { state: SheetState; onClose: 
   const [note, setNote] = useState(edit?.note ?? "");
   const [date, setDate] = useState(edit?.date ?? d.date ?? "2026-10-19");
   const [rec, setRec] = useState<RecurrenceState>(() => initialRecurrence(d.date ?? "2026-10-19"));
+  const [activityId, setActivityId] = useState<string>(edit?.activityId ?? "");
+  // AUTO: the system picks a free bag per date; "" means no bag; otherwise a fixed bag id.
+  const [bagChoice, setBagChoice] = useState<string>(edit ? (edit.bagId ?? "") : AUTO);
+  const [extraReqs, setExtraReqs] = useState<string[]>(edit?.extraRequirements ?? []);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, start_] = useTransition();
@@ -70,16 +78,20 @@ function ShiftForm({ state, onClose, onCreated }: { state: SheetState; onClose: 
   const dates = useMemo(() => (edit ? [date] : expandRule(toRule(rec)).slice(0, 200)), [edit, date, rec]);
   const timesValid = /^\d{2}:\d{2}$/.test(start) && /^\d{2}:\d{2}$/.test(end) && end > start;
 
+  const bagFor = (dt: string): string | null =>
+    !activityId ? null : bagChoice === AUTO ? pickBag(activityId, dt, employeeId || null, data, edit?.id) : bagChoice || null;
+
   const probe = (dt: string): Shift => ({
     id: edit?.id ?? `__new__${dt}`, code: edit?.code ?? "nieuw", date: dt, start, end, locationId, fn,
     employeeId: employeeId || null, status: "active", note: null, seriesId: null,
+    activityId: activityId || null, bagId: bagFor(dt), extraRequirements: extraReqs,
   });
 
   const preview = useMemo(() => {
     if (!timesValid) return [];
     return dates.map((dt) => ({ date: dt, conflicts: employeeId ? conflictsIfAssigned(data, probe(dt), employeeId) : ([] as Conflict[]) }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dates, employeeId, locationId, fn, start, end, data, timesValid]);
+  }, [dates, employeeId, locationId, fn, start, end, data, timesValid, activityId, bagChoice, extraReqs]);
   const conflictCount = preview.filter((p) => p.conflicts.length > 0).length;
 
   // Which employees would get a conflict on the first date: shown in the dropdown as a warning.
@@ -88,7 +100,7 @@ function ShiftForm({ state, onClose, onCreated }: { state: SheetState; onClose: 
     const first = probe(dates[0]);
     return new Set(data.employees.filter((e) => conflictsIfAssigned(data, first, e.id).length > 0).map((e) => e.id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dates, locationId, fn, start, end, data, timesValid]);
+  }, [dates, locationId, fn, start, end, data, timesValid, activityId, bagChoice, extraReqs]);
 
   const markedDates = useMemo(() => new Set(data.shifts.map((s) => s.date)), [data.shifts]);
 
@@ -99,8 +111,15 @@ function ShiftForm({ state, onClose, onCreated }: { state: SheetState; onClose: 
     if (conflictCount > 0 && !confirming) return setConfirming(true);
     start_(async () => {
       const r = edit
-        ? await updateShift(edit.id, { employeeId: employeeId || null, locationId, fn, date, start, end, note }, PLANNER)
-        : await createShifts({ employeeId: employeeId || null, locationId, fn, start, end, note, rule: toRule(rec), actor: PLANNER });
+        ? await updateShift(
+            edit.id,
+            { employeeId: employeeId || null, locationId, fn, date, start, end, note, activityId: activityId || null, bagId: bagFor(date), extraRequirements: extraReqs },
+            PLANNER,
+          )
+        : await createShifts({
+            employeeId: employeeId || null, locationId, fn, start, end, note, rule: toRule(rec), actor: PLANNER,
+            activityId: activityId || null, bagIds: dates.map(bagFor), extraRequirements: extraReqs,
+          });
       if ("error" in r) return setError(r.error);
       toast.success(edit ? `${edit.code} opgeslagen` : `${dates.length} ${dates.length === 1 ? "dienst" : "diensten"} aangemaakt`, {
         description: r.notified ? "De opdrachtgever krijgt automatisch bericht." : undefined,
@@ -145,7 +164,7 @@ function ShiftForm({ state, onClose, onCreated }: { state: SheetState; onClose: 
               setConfirming(false);
             }}
           >
-            {data.locations.map((l) => (
+            {data.locations.filter((l) => !l.archived || l.id === locationId).map((l) => (
               <option key={l.id} value={l.id}>
                 {l.name} ({l.city})
               </option>
@@ -171,6 +190,59 @@ function ShiftForm({ state, onClose, onCreated }: { state: SheetState; onClose: 
             <Input id="f-end" type="time" step={300} value={end} onChange={(e) => { setEnd(e.target.value); setConfirming(false); }} />
           </div>
         </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="grid gap-1.5">
+            <Label htmlFor="f-act">Activiteit</Label>
+            <NativeSelect id="f-act" value={activityId} onChange={(e) => { setActivityId(e.target.value); setBagChoice(AUTO); setConfirming(false); }}>
+              <option value="">Geen</option>
+              {(data.activities ?? []).map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </NativeSelect>
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="f-bag">Tas</Label>
+            <NativeSelect id="f-bag" value={bagChoice} disabled={!activityId} onChange={(e) => { setBagChoice(e.target.value); setConfirming(false); }}>
+              <option value={AUTO}>Automatisch (vrije tas)</option>
+              <option value="">Geen tas</option>
+              {(data.bags ?? []).filter((b) => b.activityId === activityId).map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.label}
+                </option>
+              ))}
+            </NativeSelect>
+          </div>
+          {activityId && bagChoice === AUTO && dates.length > 0 && (
+            <p className="col-span-2 text-xs text-muted-foreground">
+              {dates.every((dt) => bagFor(dt))
+                ? `Tas: ${[...new Set(dates.map((dt) => data.bags?.find((b) => b.id === bagFor(dt))?.label))].join(", ")}`
+                : "Let op: op sommige dagen is geen tas vrij."}
+            </p>
+          )}
+        </div>
+
+        <fieldset className="grid gap-1.5">
+          <legend className="mb-1 text-sm font-medium">Extra eisen (bovenop de eisen van de locatie)</legend>
+          <div className="flex flex-wrap gap-x-4 gap-y-2">
+            {LICENCES.filter((l) => l !== "VOG").map((l) => (
+              <label key={l} className="flex items-center gap-2 text-sm">
+                <Checkbox
+                  checked={extraReqs.includes(l)}
+                  onCheckedChange={(on) => { setExtraReqs(on ? [...extraReqs, l] : extraReqs.filter((x) => x !== l)); setConfirming(false); }}
+                />
+                {l}
+              </label>
+            ))}
+          </div>
+          {data.requirements && (
+            <p className="text-xs text-muted-foreground">
+              Altijd vereist op een {locations.get(locationId)?.type}: {(data.requirements[locations.get(locationId)?.type ?? ""] ?? []).join(", ") || "niets"}.
+            </p>
+          )}
+        </fieldset>
 
         {edit ? (
           <div className="grid gap-1.5">

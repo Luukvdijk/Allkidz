@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal, Pencil, Sparkles, UserMinus, XCircle } from "lucide-react";
+import { Backpack, MoreHorizontal, Pencil, ShieldCheck, Sparkles, UserMinus, XCircle } from "lucide-react";
 import { cn } from "cn";
 import type { Shift } from "@/lib/types";
 import {
@@ -50,11 +50,13 @@ export function ShiftActions({ shift }: { shift: Shift }) {
 }
 
 export function ShiftChip({ shift, variant = "full", showEmployee = false, dimmed = false }: Props) {
-  const { locations, employees, byShift, edit, suggest } = usePlan();
+  const { locations, employees, byShift, edit, suggest, data } = usePlan();
   const conflicts = byShift.get(shift.id) ?? [];
   const loc = locations.get(shift.locationId);
   const emp = shift.employeeId ? employees.get(shift.employeeId) : null;
   const open = !shift.employeeId;
+  const activity = shift.activityId ? data.activities?.find((a) => a.id === shift.activityId) : undefined;
+  const bag = shift.bagId ? data.bags?.find((b) => b.id === shift.bagId) : undefined;
 
   return (
     <div
@@ -97,6 +99,22 @@ export function ShiftChip({ shift, variant = "full", showEmployee = false, dimme
           {shift.note && <span className="italic">&ldquo;{shift.note}&rdquo;</span>}
           {variant === "compact" && conflicts.map((c, i) => <ConflictPill key={i} type={c.type} />)}
         </div>
+        {(activity || (shift.extraRequirements?.length ?? 0) > 0) && (
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+            {activity && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-accent px-1.5 py-0.5 text-accent-foreground">
+                <Backpack className="size-3" aria-hidden />
+                {activity.name}
+                {variant === "full" && <span className="opacity-75">· {bag ? bag.label.replace(`${activity.name} `, "") : "geen tas"}</span>}
+              </span>
+            )}
+            {shift.extraRequirements?.map((r) => (
+              <span key={r} className="inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-muted-foreground">
+                <ShieldCheck className="size-3" aria-hidden /> {r} vereist
+              </span>
+            ))}
+          </div>
+        )}
         {variant === "full" && conflicts.length > 0 && (
           <div className="mt-1.5 space-y-0.5">
             {conflicts.map((c, i) => (

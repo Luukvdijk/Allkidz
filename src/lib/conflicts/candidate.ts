@@ -7,8 +7,12 @@ import { detectConflicts } from "./detect";
  */
 export function conflictsIfAssigned(data: PlanData, shift: Shift, employeeId: string): Conflict[] {
   const probe: Shift = { ...shift, employeeId, status: "active" };
+  // The employee's own day, plus other coaches' shifts holding the same bag that day (bag doubles).
   const sameDay = data.shifts.filter(
-    (s) => s.id !== shift.id && s.employeeId === employeeId && s.date === shift.date,
+    (s) =>
+      s.id !== shift.id &&
+      s.date === shift.date &&
+      (s.employeeId === employeeId || (probe.bagId != null && s.bagId === probe.bagId)),
   );
   return detectConflicts({ ...data, shifts: [...sameDay, probe] }).filter((c) => c.shiftIds.includes(probe.id));
 }

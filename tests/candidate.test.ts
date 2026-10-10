@@ -27,3 +27,12 @@ it("returns no conflicts for a free employee with the right function", () => {
   expect(free).toBeDefined();
   expect(conflictsIfAssigned(data, D010, free.id)).toEqual([]);
 });
+
+it("sees a bag held by another coach that day and missing licences (extended data)", () => {
+  const ext = loadFixture({ extended: true });
+  const probe = { ...ext.shifts.find((s) => s.id === "D010")!, date: "2026-10-20", activityId: "jachtseizoen", bagId: "jachtseizoen-tas-1" };
+  const types = conflictsIfAssigned(ext, probe, "Liv").map((c) => c.type); // Emma holds tas 1 on Tuesday
+  expect(types).toContain("bag");
+  const kdv = ext.shifts.find((s) => s.id === "D099")!; // open, KDV De Pluimpjes
+  expect(conflictsIfAssigned(ext, kdv, "Hana").map((c) => c.type)).toContain("licence");
+});
