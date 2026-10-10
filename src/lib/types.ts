@@ -11,6 +11,38 @@ export interface Location {
   name: string;
   type: string;
   city: string;
+  clientId?: string | null;
+  /** archived locations can no longer be booked; their existing shifts stay visible */
+  archived?: boolean;
+}
+
+export interface Client {
+  id: string;
+  name: string;
+}
+
+export interface Licence {
+  employeeId: string;
+  type: string;
+  /** null: does not expire (VOG) */
+  expiresOn: string | null;
+}
+
+export interface PackingItem {
+  item: string;
+  qty: number;
+}
+
+export interface Activity {
+  id: string;
+  name: string;
+  packingList: PackingItem[];
+}
+
+export interface Bag {
+  id: string;
+  activityId: string;
+  label: string;
 }
 
 /** Travel time between two location ids, the same in both directions. */
@@ -44,6 +76,10 @@ export interface Shift {
   status: ShiftStatus;
   note: string | null;
   seriesId: string | null;
+  /** licences required on top of the location type's requirements */
+  extraRequirements?: string[];
+  activityId?: string | null;
+  bagId?: string | null;
 }
 
 export interface PlanData {
@@ -52,9 +88,15 @@ export interface PlanData {
   travel: TravelTime[];
   unavailability: Unavailability[];
   shifts: Shift[];
+  /** Extension (self-made data). When `requirements` is absent the licence check is off. */
+  licences?: Licence[];
+  requirements?: Record<string, string[]>;
+  clients?: Client[];
+  activities?: Activity[];
+  bags?: Bag[];
 }
 
-export type ConflictType = "overlap" | "travel" | "unavailable" | "function";
+export type ConflictType = "overlap" | "travel" | "unavailable" | "function" | "licence" | "bag";
 
 export interface Conflict {
   type: ConflictType;

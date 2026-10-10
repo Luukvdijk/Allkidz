@@ -1,5 +1,7 @@
 import type { Conflict, PlanData, Shift, Unavailability } from "@/lib/types";
-import { toMin } from "@/lib/time";
+import { dayMonth, toMin } from "@/lib/time";
+import { licenceProblems, requiredLicences } from "@/lib/licences";
+import { bagDoubles } from "@/lib/bags";
 import { travelLookup } from "./travel";
 
 function push<K, V>(m: Map<K, V[]>, k: K, v: V) {
@@ -74,6 +76,43 @@ export function detectConflicts(data: PlanData): Conflict[] {
           type: "function", employeeId, date, shiftIds: [s.id],
           message: `${employee.name} heeft geen functie ${s.fn} (wel: ${employee.functions.join(", ")})`,
         });
+    }
+  }
+  out.push(...extensionConflicts(data));
+  return out;
+}
+
+/** Licence and bag conflicts. Only active when the extension data (requirements, bags) is present. */
+function extensionConflicts(data: PlanData): Conflict[] {
+  const out: Conflict[] = [];
+  if (data.requirements) {
+    const locations = new Map(data.locations.map((l) => [l.id, l]));
+    const licences = data.licences ?? [];
+    for (const s of data.shifts) {
+      if (!s.employeeId || s.status !== "active") continue;
+      const loc = locations.get(s.locationId);
+      if (!loc) continue;
+      const byType = new Set(data.requirements[loc.type] ?? []);
+      for (const p of licenceProblems(s, licences, requiredLicences(s, loc.type, data.requirements))) {
+        out.push({
+          type: "licence", employeeId: s.employeeId, date: s.date, shiftIds: [s.id],
+          message: p.kind === "expired"
+            ? `${p.type} verlopen op ${dayMonth(p.expiresOn!)}`
+            : `Mist ${p.type} (${byType.has(p.type) ? `vereist op ${loc.type}` : "extra eis voor deze dienst"})`,
+        });
+      }
+    }
+  }
+  if (data.bags?.length) {
+    const label = new Map(data.bags.map((b) => [b.id, b.label]));
+    const byId = new Map(data.shifts.map((s) => [s.id, s]));
+    const name = new Map(data.employees.map((e) => [e.id, e.name]));
+    for (const d of bagDoubles(data.shifts)) {
+      const list = d.shiftIds.map((id) => byId.get(id)!);
+      out.push({
+        type: "bag", employeeId: list[0].employeeId!, date: d.date, shiftIds: d.shiftIds,
+        message: `${label.get(d.bagId)} is die dag bij meerdere coaches: ${list.map((s) => `${name.get(s.employeeId!)} (${s.code})`).join(" en ")}`,
+      });
     }
   }
   return out;

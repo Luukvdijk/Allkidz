@@ -1,4 +1,4 @@
-import { AlertTriangle, Ban, Car, Clock, UserX } from "lucide-react";
+import { AlertTriangle, Backpack, Ban, BadgeCheck, Car, Clock, UserX } from "lucide-react";
 import { cn } from "cn";
 import type { Conflict, ConflictType } from "@/lib/types";
 
@@ -7,9 +7,11 @@ export const CONFLICT_LABEL: Record<ConflictType, string> = {
   travel: "Reistijd",
   unavailable: "Niet beschikbaar",
   function: "Functie",
+  licence: "Licentie",
+  bag: "Tas dubbel",
 };
 
-const ICON = { overlap: Clock, travel: Car, unavailable: UserX, function: Ban } as const;
+const ICON = { overlap: Clock, travel: Car, unavailable: UserX, function: Ban, licence: BadgeCheck, bag: Backpack } as const;
 
 /** A conflict shown as text, never only as a colour or tooltip, so it is readable on a phone and in a video. */
 export function ConflictLine({ conflict, compact = false }: { conflict: Conflict; compact?: boolean }) {
