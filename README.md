@@ -10,7 +10,7 @@ Demo of a planning app for AllKidz: a planner (Sanne) plans shifts and immediate
 - **New shift with recurrence**: one date, loose dates (calendar), or a pattern (weekly, every other week, every third Friday of the month). Every generated date is checked for conflicts before saving.
 - **Change log**: who, when, what (before and after) and why. A reason is required for every removal. The log is append-only, enforced in the database.
 - **Automatic client message** for changes within the notice period (default 7 days, configurable), with an optional real email.
-- **Employee app** (phone layout): own shifts per day / week / month, report unavailability, accept open shifts that match the employee's function and schedule, cancel with a reason.
+- **Employee web app** (app layout with a bottom tab bar on a phone, a normal web page on desktop): own shifts per day / week / month, report unavailability, accept open shifts that match the employee's function and schedule, cancel with a reason.
 - **Client view** (read-only): the location's shifts and the notifications it received.
 - **Suggest an employee** for an open shift: right function, valid licences, available, no overlap, enough travel time, fewest hours that week first.
 

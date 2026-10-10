@@ -28,7 +28,7 @@ export function RoleSwitcher({ employees, clients, fullWidth = false, onNavigate
         className={fullWidth ? "w-full" : "w-48 sm:w-56"}
       >
         <option value="/planbord">Planner (Sanne)</option>
-        <optgroup label="Medewerker (telefoon)">
+        <optgroup label="Medewerker">
           {employees.map((e) => (
             <option key={e.id} value={`/medewerker/${e.id}`}>
               {e.name}

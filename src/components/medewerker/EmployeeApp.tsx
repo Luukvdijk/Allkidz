@@ -45,39 +45,44 @@ function Phone({ employee, actor }: { employee: Employee; actor: Actor }) {
   const mine = useMemo(() => data.shifts.filter((s) => s.employeeId === employee.id && s.status === "active").sort(byStart), [data.shifts, employee.id]);
   const conflicts = mine.filter((s) => byShift.has(s.id)).length;
 
+  // Below md this is the phone app (full screen, tab bar at the bottom); from md up it is a normal web page with tabs on top.
   return (
-    <div className="mx-auto flex h-[min(820px,calc(100dvh-96px))] w-full max-w-[420px] flex-col overflow-hidden rounded-[2rem] border-[6px] border-foreground/85 bg-background shadow-xl max-sm:h-[calc(100dvh-64px)] max-sm:rounded-none max-sm:border-0">
-      <header className="bg-primary px-4 pt-4 pb-3 text-primary-foreground">
-        <p className="text-xs opacity-80">AllKidz medewerker-app</p>
-        <h1 className="text-lg font-semibold">Hoi {employee.name}</h1>
-        <p className="text-xs opacity-80">{employee.functions.join(", ")}</p>
-        {conflicts > 0 && <p className="mt-2 rounded-md bg-white/15 px-2 py-1 text-xs">Let op: {conflicts} van je diensten {conflicts === 1 ? "heeft" : "hebben"} een probleem. De planner kijkt ernaar.</p>}
+    <div className="flex h-[calc(100dvh-64px)] flex-col overflow-hidden bg-background md:mx-auto md:h-auto md:max-w-5xl md:overflow-visible md:px-4 md:py-6">
+      <header className="bg-primary px-4 pt-4 pb-3 text-primary-foreground md:rounded-xl md:px-6 md:py-5">
+        <p className="text-xs opacity-80">AllKidz voor medewerkers</p>
+        <h1 className="text-lg font-semibold md:text-2xl">Hoi {employee.name}</h1>
+        <p className="text-xs opacity-80 md:text-sm">{employee.functions.join(", ")}</p>
+        {conflicts > 0 && <p className="mt-2 rounded-md bg-white/15 px-2 py-1 text-xs md:inline-block md:text-sm">Let op: {conflicts} van je diensten {conflicts === 1 ? "heeft" : "hebben"} een probleem. De planner kijkt ernaar.</p>}
       </header>
-      <div className="flex-1 overflow-y-auto p-3">
-        {tab === "diensten" && <MyShifts mine={mine} actor={actor} />}
-        {tab === "beschikbaar" && <Availability employee={employee} actor={actor} />}
-        {tab === "open" && <OpenShifts employee={employee} actor={actor} />}
-        {tab === "profiel" && <Profile employee={employee} />}
-      </div>
-      <nav className="grid grid-cols-4 border-t bg-card" aria-label="Medewerker-app">
+      <nav className="order-last grid grid-cols-4 border-t bg-card md:order-none md:my-4 md:flex md:gap-1 md:border-t-0 md:border-b md:bg-transparent" aria-label="Medewerker">
         {([
-          ["diensten", "Diensten", CalendarDays],
-          ["beschikbaar", "Beschikbaar", CalendarOff],
-          ["open", "Open", Inbox],
-          ["profiel", "Profiel", UserRound],
-        ] as const).map(([t, label, Icon]) => (
+          ["diensten", "Diensten", "Diensten", CalendarDays],
+          ["beschikbaar", "Beschikbaar", "Beschikbaarheid", CalendarOff],
+          ["open", "Open", "Open diensten", Inbox],
+          ["profiel", "Profiel", "Profiel", UserRound],
+        ] as const).map(([t, short, long, Icon]) => (
           <button
             key={t}
             type="button"
             onClick={() => setTab(t)}
             aria-current={tab === t ? "page" : undefined}
-            className={cn("flex flex-col items-center gap-0.5 py-2 text-xs", tab === t ? "font-medium text-primary" : "text-muted-foreground")}
+            className={cn(
+              "flex flex-col items-center gap-0.5 py-2 text-xs md:-mb-px md:flex-row md:gap-2 md:border-b-2 md:px-3 md:text-sm",
+              tab === t ? "font-medium text-primary md:border-primary" : "text-muted-foreground md:border-transparent md:hover:text-foreground",
+            )}
           >
-            <Icon className="size-5" aria-hidden />
-            {label}
+            <Icon className="size-5 md:size-4" aria-hidden />
+            <span className="md:hidden">{short}</span>
+            <span className="max-md:hidden">{long}</span>
           </button>
         ))}
       </nav>
+      <div className="flex-1 overflow-y-auto p-3 md:overflow-visible md:p-0">
+        {tab === "diensten" && <MyShifts mine={mine} actor={actor} />}
+        {tab === "beschikbaar" && <Availability employee={employee} actor={actor} />}
+        {tab === "open" && <OpenShifts employee={employee} actor={actor} />}
+        {tab === "profiel" && <Profile employee={employee} />}
+      </div>
     </div>
   );
 }
@@ -137,19 +142,19 @@ function MyShifts({ mine, actor }: { mine: Shift[]; actor: Actor }) {
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-3 rounded-lg border bg-muted p-0.5 text-sm" role="tablist">
+      <div className="grid grid-cols-3 rounded-lg border bg-muted p-0.5 text-sm md:w-72" role="tablist">
         {(["dag", "week", "maand"] as const).map((r) => (
           <button key={r} role="tab" aria-selected={range === r} onClick={() => setRange(r)} className={cn("rounded-md py-1 capitalize", range === r ? "bg-background font-medium shadow-xs" : "text-muted-foreground")}>
             {r}
           </button>
         ))}
       </div>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between md:justify-start md:gap-2">
         <Button variant="ghost" size="icon-sm" aria-label="Vorige" onClick={() => step(-1)}>
           <ChevronLeft />
         </Button>
-        <div className="text-center">
-          <p className="text-sm font-semibold first-letter:uppercase">{title}</p>
+        <div className="text-center md:min-w-56">
+          <p className="text-sm font-semibold first-letter:uppercase md:text-base">{title}</p>
           <p className="text-xs text-muted-foreground">
             {inRange.length} {inRange.length === 1 ? "dienst" : "diensten"} · {hoursLabel(minutes)}
           </p>
@@ -160,7 +165,7 @@ function MyShifts({ mine, actor }: { mine: Shift[]; actor: Actor }) {
       </div>
 
       {range === "maand" ? (
-        <div className="grid grid-cols-7 gap-0.5 text-center text-xs">
+        <div className="grid grid-cols-7 gap-0.5 text-center text-xs md:max-w-2xl md:text-sm">
           {DAY_SHORT.map((d) => (
             <span key={d} className="py-1 text-muted-foreground">
               {d}
@@ -173,7 +178,7 @@ function MyShifts({ mine, actor }: { mine: Shift[]; actor: Actor }) {
                 key={d}
                 type="button"
                 onClick={() => { setDate(d); setRange("dag"); }}
-                className={cn("relative rounded-md py-2 tabular-nums hover:bg-muted", !d.startsWith(date.slice(0, 7)) && "text-muted-foreground/50", has && "font-semibold")}
+                className={cn("relative rounded-md py-2 tabular-nums hover:bg-muted md:py-5", !d.startsWith(date.slice(0, 7)) && "text-muted-foreground/50", has && "font-semibold")}
               >
                 {Number(d.slice(8))}
                 {has && <span className="absolute bottom-1 left-1/2 size-1.5 -translate-x-1/2 rounded-full bg-primary" />}
@@ -184,7 +189,7 @@ function MyShifts({ mine, actor }: { mine: Shift[]; actor: Actor }) {
       ) : inRange.length === 0 ? (
         <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">Geen diensten in deze periode.</p>
       ) : range === "dag" ? (
-        <ul className="space-y-2">
+        <ul className="grid gap-2 md:grid-cols-2">
           {inRange.map((s) => <ShiftCard key={s.id} s={s} actor={actor} />)}
         </ul>
       ) : (
@@ -192,7 +197,7 @@ function MyShifts({ mine, actor }: { mine: Shift[]; actor: Actor }) {
           {[...new Set(inRange.map((s) => s.date))].map((d) => (
             <section key={d}>
               <h3 className="mb-1 text-xs font-semibold text-muted-foreground uppercase">{shortDate(d)}</h3>
-              <ul className="space-y-2">
+              <ul className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
                 {inRange.filter((s) => s.date === d).map((s) => <ShiftCard key={s.id} s={s} actor={actor} />)}
               </ul>
             </section>
@@ -230,9 +235,9 @@ function Availability({ employee, actor }: { employee: Employee; actor: Actor })
     });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 md:grid md:grid-cols-2 md:items-start md:gap-6 md:space-y-0">
       <form
-        className="space-y-3 rounded-xl border bg-card p-3"
+        className="space-y-3 rounded-xl border bg-card p-3 md:p-4"
         onSubmit={(e) => {
           e.preventDefault();
           save();
@@ -338,13 +343,13 @@ function OpenShifts({ employee, actor }: { employee: Employee; actor: Actor }) {
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-muted-foreground">
+      <p className="text-xs text-muted-foreground md:text-sm">
         Alleen open diensten voor jouw functie ({employee.functions.join(", ")}) die passen in je rooster: geen overlap, genoeg reistijd en je bent beschikbaar.
       </p>
       {fit.length === 0 ? (
         <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">Er zijn nu geen open diensten die bij je passen.</p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
           {fit.map((s) => {
             const loc = locations.get(s.locationId)!;
             return (
@@ -370,7 +375,7 @@ function OpenShifts({ employee, actor }: { employee: Employee; actor: Actor }) {
             {showHidden ? "Verberg" : "Toon"} {blocked.length} open {blocked.length === 1 ? "dienst" : "diensten"} die niet passen
           </button>
           {showHidden && (
-            <ul className="mt-2 space-y-2">
+            <ul className="mt-2 grid gap-2 md:grid-cols-2 lg:grid-cols-3">
               {blocked.map(({ s, c }) => (
                 <li key={s.id} className="rounded-xl border bg-muted/40 p-3 text-sm opacity-80">
                   <p className="font-medium first-letter:uppercase">
@@ -485,12 +490,12 @@ function Profile({ employee }: { employee: Employee }) {
   const { data, ws } = usePlan();
   const licences = (data.licences ?? []).filter((l) => l.employeeId === employee.id);
   return (
-    <div className="space-y-4">
-      <section className="rounded-xl border bg-card p-3">
+    <div className="space-y-4 md:grid md:grid-cols-2 md:items-start md:gap-6 md:space-y-0">
+      <section className="rounded-xl border bg-card p-3 md:p-4">
         <h2 className="text-sm font-semibold">{employee.name}</h2>
         <p className="text-sm text-muted-foreground">{employee.functions.join(", ")}</p>
       </section>
-      <section className="rounded-xl border bg-card p-3">
+      <section className="rounded-xl border bg-card p-3 md:p-4">
         <h2 className="mb-2 text-sm font-semibold">Mijn licenties</h2>
         <LicenceList licences={licences} today={ws.today} />
         <p className="mt-3 text-xs text-muted-foreground">
