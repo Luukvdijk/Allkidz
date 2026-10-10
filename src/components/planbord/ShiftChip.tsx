@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal, Pencil, UserMinus, XCircle } from "lucide-react";
+import { MoreHorizontal, Pencil, Sparkles, UserMinus, XCircle } from "lucide-react";
 import { cn } from "cn";
 import type { Shift } from "@/lib/types";
 import {
@@ -50,7 +50,7 @@ export function ShiftActions({ shift }: { shift: Shift }) {
 }
 
 export function ShiftChip({ shift, variant = "full", showEmployee = false, dimmed = false }: Props) {
-  const { locations, employees, byShift, edit } = usePlan();
+  const { locations, employees, byShift, edit, suggest } = usePlan();
   const conflicts = byShift.get(shift.id) ?? [];
   const loc = locations.get(shift.locationId);
   const emp = shift.employeeId ? employees.get(shift.employeeId) : null;
@@ -105,7 +105,18 @@ export function ShiftChip({ shift, variant = "full", showEmployee = false, dimme
           </div>
         )}
       </button>
-      <ShiftActions shift={shift} />
+      <div className="flex shrink-0 flex-col items-end gap-1">
+        <ShiftActions shift={shift} />
+        {open && suggest && variant === "full" && (
+          <button
+            type="button"
+            onClick={() => suggest(shift)}
+            className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium text-primary hover:bg-accent"
+          >
+            <Sparkles className="size-3.5" aria-hidden /> Stel iemand voor
+          </button>
+        )}
+      </div>
     </div>
   );
 }

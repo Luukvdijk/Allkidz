@@ -8,6 +8,7 @@ import { addDays, mondayOf } from "@/lib/time";
 import { detectConflicts } from "@/lib/conflicts";
 import { ShiftSheet, type SheetState } from "@/components/shift/ShiftSheet";
 import { RemoveDialog, type RemoveState } from "@/components/shift/RemoveDialog";
+import { SuggestDialog } from "@/components/shift/SuggestDialog";
 import { PlanProvider, type Workspace } from "./PlanContext";
 import { Toolbar } from "./Toolbar";
 import { DayView } from "./DayView";
@@ -30,6 +31,7 @@ export function Planbord({ data, ws }: { data: PlanData; ws: Workspace }) {
   const filters = useMemo(() => parseFilters(new URLSearchParams(params.toString())), [params]);
   const [sheet, setSheet] = useState<SheetState | null>(null);
   const [removing, setRemoving] = useState<RemoveState>(null);
+  const [suggesting, setSuggesting] = useState<Shift | null>(null);
 
   const set = useCallback(
     (patch: Partial<Filters>) => {
@@ -51,6 +53,7 @@ export function Planbord({ data, ws }: { data: PlanData; ws: Workspace }) {
       edit: (shift: Shift) => setSheet({ mode: "edit", shift }),
       create: (defaults = {}) => setSheet({ mode: "new", defaults }),
       remove: (shift: Shift, mode: "employee" | "shift") => setRemoving({ shift, mode }),
+      suggest: (shift: Shift) => setSuggesting(shift),
     }),
     [],
   );
@@ -69,6 +72,7 @@ export function Planbord({ data, ws }: { data: PlanData; ws: Workspace }) {
       </main>
       <ShiftSheet state={sheet} onClose={() => setSheet(null)} onCreated={(d) => set({ date: d })} />
       <RemoveDialog state={removing} onClose={() => setRemoving(null)} />
+      <SuggestDialog shift={suggesting} onClose={() => setSuggesting(null)} />
     </PlanProvider>
   );
 }

@@ -16,6 +16,7 @@ export interface PlanActions {
   edit: (shift: Shift) => void;
   create: (defaults?: Partial<Pick<Shift, "date" | "employeeId" | "locationId" | "start" | "end" | "fn">>) => void;
   remove: (shift: Shift, mode: RemoveMode) => void;
+  suggest?: (shift: Shift) => void;
 }
 
 interface PlanCtx extends PlanActions {
