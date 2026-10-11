@@ -7,6 +7,7 @@ import { describeRule, expandRule, type RecurrenceRule } from "@/lib/recurrence"
 import { PLANNER, type Actor } from "@/lib/data/actor";
 import { logChange } from "./_log";
 import { insertShifts, validTimes } from "./_insert";
+import { hasPastDate, PAST_DATE_ERROR } from "@/lib/time";
 
 type Result = { ok: true; shiftIds?: string[] } | { error: string };
 const FUNCTIONS = ["KidzCoach", "Toezichthouder", "Aqualessen", "Zwemonderwijzer", "Gymdocent"];
@@ -32,6 +33,7 @@ export async function createRequest(clientId: string, input: RequestInput): Prom
 
   const sb = await supabaseServer();
   const ws = await getWorkspace(sb);
+  if (hasPastDate(dates, ws.today)) return { error: PAST_DATE_ERROR };
   const [{ data: client }, { data: loc }] = await Promise.all([
     sb.from("clients").select("id, name").eq("id", clientId).single(),
     sb.from("locations").select("id, client_id, archived_at").eq("id", input.locationId).single(),
@@ -62,6 +64,8 @@ export async function approveRequest(id: string): Promise<Result> {
   const ws = await getWorkspace(sb);
   const { data: r } = await sb.from("shift_requests").select("*").eq("id", id).single();
   if (!r || r.status !== "aangevraagd") return { error: "Aanvraag niet (meer) open." };
+  if (hasPastDate(expandRule(r.rule as RecurrenceRule), ws.today))
+    return { error: "Deze aanvraag gaat (deels) over een datum die al voorbij is. Wijs hem af met een reden." };
   const created = await insertShifts(sb, ws, {
     employeeId: null, locationId: r.location_id, fn: r.function, start: r.start_time.slice(0, 5), end: r.end_time.slice(0, 5),
     note: r.note, rule: r.rule as RecurrenceRule, actor: PLANNER, activityId: r.activity_id, extraRequirements: [],

@@ -1,11 +1,14 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
 import { cn } from "cn";
 import type { Shift } from "@/lib/types";
 import { addDays, shortDate, toMin } from "@/lib/time";
 import { durationMin, hoursLabel } from "@/lib/hours";
 import { usePlan } from "./PlanContext";
+import { EmptyState } from "@/components/EmptyState";
+import { SearchX } from "lucide-react";
 
 interface Props {
   visible: Shift[];
@@ -41,7 +44,12 @@ export function WeekView({ visible, monday, onOpenDay }: Props) {
     return { days, rows };
   }, [visible, monday, employees, byShift]);
 
-  if (rows.length === 0) return <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">Geen diensten in deze week met deze filters.</p>;
+  if (rows.length === 0)
+    return (
+      <EmptyState icon={SearchX} title="Geen diensten in deze week">
+        Niets gevonden met deze filters. Ga naar een andere week of wis de zoekterm.
+      </EmptyState>
+    );
 
   return (
     <div className="max-h-[calc(100dvh-230px)] overflow-auto rounded-xl border bg-card">
@@ -70,7 +78,13 @@ export function WeekView({ visible, monday, onOpenDay }: Props) {
                   conflicted && "text-destructive",
                 )}
               >
-                {id === OPEN ? "Open diensten" : employees.get(id)!.name}
+                {id === OPEN ? (
+                  "Open diensten"
+                ) : (
+                  <Link href={`/medewerkers/${id}`} className="underline-offset-2 hover:underline">
+                    {employees.get(id)!.name}
+                  </Link>
+                )}
                 {conflicted && <span className="ml-1.5 inline-block size-2 rounded-full bg-destructive align-middle" aria-label="heeft conflicten" />}
               </th>
               {days.map((d) => {

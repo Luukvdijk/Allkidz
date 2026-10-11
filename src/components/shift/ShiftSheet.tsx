@@ -10,7 +10,7 @@ import { expandRule } from "@/lib/recurrence";
 import { pickBag } from "@/lib/bags";
 import { MissingNotice } from "@/components/bags/MissingNotice";
 import { Checkbox } from "@/components/ui/checkbox";
-import { shortDate } from "@/lib/time";
+import { notBefore, shortDate } from "@/lib/time";
 import { PLANNER } from "@/lib/data/actor";
 import { createShifts, updateShift } from "@/app/actions/shifts";
 import { Button } from "@/components/ui/button";
@@ -55,7 +55,7 @@ export function ShiftSheet({ state, onClose, onCreated }: Props) {
 }
 
 function ShiftForm({ state, onClose, onCreated }: { state: SheetState; onClose: () => void; onCreated?: (d: string) => void }) {
-  const { data, locations, employees } = usePlan();
+  const { data, locations, employees, ws } = usePlan();
   const edit = state.mode === "edit" ? state.shift : null;
   const d = state.mode === "new" ? state.defaults : {};
   const firstLocation = d.locationId ?? data.locations[0].id;
@@ -66,8 +66,10 @@ function ShiftForm({ state, onClose, onCreated }: { state: SheetState; onClose: 
   const [start, setStart] = useState(edit?.start ?? d.start ?? "14:45");
   const [end, setEnd] = useState(edit?.end ?? d.end ?? "18:00");
   const [note, setNote] = useState(edit?.note ?? "");
-  const [date, setDate] = useState(edit?.date ?? d.date ?? "2026-10-19");
-  const [rec, setRec] = useState<RecurrenceState>(() => initialRecurrence(d.date ?? "2026-10-19"));
+  const [date, setDate] = useState(edit?.date ?? notBefore(d.date ?? "2026-10-19", ws.today));
+  const [rec, setRec] = useState<RecurrenceState>(() => initialRecurrence(d.date ?? "2026-10-19", ws.today));
+  // A shift already in the past may keep its date; everything else starts at today.
+  const minDate = edit && edit.date < ws.today ? edit.date : ws.today;
   const [activityId, setActivityId] = useState<string>(edit?.activityId ?? "");
   // AUTO: the system picks a free bag per date; "" means no bag; otherwise a fixed bag id.
   const [bagChoice, setBagChoice] = useState<string>(edit ? (edit.bagId ?? "") : AUTO);
@@ -258,10 +260,10 @@ function ShiftForm({ state, onClose, onCreated }: { state: SheetState; onClose: 
         {edit ? (
           <div className="grid gap-1.5">
             <Label htmlFor="f-date">Datum</Label>
-            <Input id="f-date" type="date" value={date} onChange={(e) => { setDate(e.target.value); setConfirming(false); }} />
+            <Input id="f-date" type="date" min={minDate} value={date} onChange={(e) => { setDate(e.target.value); setConfirming(false); }} />
           </div>
         ) : (
-          <RecurrenceInput value={rec} onChange={(v) => { setRec(v); setConfirming(false); }} marked={markedDates} />
+          <RecurrenceInput value={rec} onChange={(v) => { setRec(v); setConfirming(false); }} marked={markedDates} min={ws.today} />
         )}
 
         <div className="grid gap-1.5">

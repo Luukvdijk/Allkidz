@@ -72,7 +72,7 @@ export function Toolbar({ filters, set, scoped, visible }: Props) {
               aria-selected={filters.view === v}
               onClick={() => set({ view: v })}
               className={cn(
-                "rounded-md px-3 py-1 text-sm transition-colors",
+                "rounded-md px-3 py-1 text-sm press",
                 filters.view === v ? "bg-background font-medium shadow-xs" : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -127,7 +127,7 @@ export function Toolbar({ filters, set, scoped, visible }: Props) {
                 aria-selected={active}
                 onClick={() => set({ date: d, view: "dag" })}
                 className={cn(
-                  "min-w-24 flex-1 shrink-0 rounded-lg border px-2.5 py-1.5 text-left transition-colors sm:min-w-28 sm:px-3",
+                  "min-w-24 flex-1 shrink-0 rounded-lg border px-2.5 py-1.5 text-left press sm:min-w-28 sm:px-3",
                   active ? "border-primary bg-accent" : "bg-card hover:bg-muted",
                 )}
               >

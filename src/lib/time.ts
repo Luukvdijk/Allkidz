@@ -74,3 +74,14 @@ export function longDate(iso: string): string {
 export function monthLabel(iso: string): string {
   return `${MONTH_LONG[Number(iso.slice(5, 7)) - 1]} ${iso.slice(0, 4)}`;
 }
+
+/** Dates before the demo's "today" can't be planned; used by every date picker and checked again on the server. */
+export function notBefore(iso: string, min: string): string {
+  return iso < min ? min : iso;
+}
+
+export const PAST_DATE_ERROR = "Een datum in het verleden kan niet. Kies vandaag of later.";
+
+export function hasPastDate(dates: string[], today: string): boolean {
+  return dates.some((d) => d < today);
+}

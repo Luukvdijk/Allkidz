@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { toMin, fromMin, addDays, weekday, mondayOf, daysBetween, monthGrid, shortDate } from "@/lib/time";
+import { toMin, fromMin, addDays, weekday, mondayOf, daysBetween, monthGrid, shortDate, notBefore, hasPastDate } from "@/lib/time";
 
 describe("time", () => {
   it("parses HH:MM and treats 23:59 as end of day", () => {
@@ -23,5 +23,11 @@ describe("time", () => {
   });
   it("short Dutch date", () => {
     expect(shortDate("2026-10-23")).toBe("vr 23 okt");
+  });
+  it("keeps dates at or after today", () => {
+    expect(notBefore("2026-10-12", "2026-10-16")).toBe("2026-10-16");
+    expect(notBefore("2026-10-19", "2026-10-16")).toBe("2026-10-19");
+    expect(hasPastDate(["2026-10-16", "2026-10-20"], "2026-10-16")).toBe(false);
+    expect(hasPastDate(["2026-10-20", "2026-10-15"], "2026-10-16")).toBe(true);
   });
 });

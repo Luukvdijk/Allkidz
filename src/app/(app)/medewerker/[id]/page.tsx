@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { loadWorkspace } from "@/lib/data/load";
 import { EmployeeApp } from "@/components/medewerker/EmployeeApp";
-import { PageSkeleton } from "@/components/PageSkeleton";
+import { EmployeeSkeleton } from "@/components/PageSkeleton";
 
 export const metadata: Metadata = { title: "Medewerker | AllKidz Planning (demo)" };
 
@@ -20,7 +20,7 @@ async function EmployeeData({ params }: { params: Promise<{ id: string }> }) {
 export default function EmployeePage({ params }: PageProps<"/medewerker/[id]">) {
   return (
     <main>
-      <Suspense fallback={<PageSkeleton rows={4} />}>
+      <Suspense fallback={<EmployeeSkeleton />}>
         <EmployeeData params={params} />
       </Suspense>
     </main>
