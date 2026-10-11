@@ -19,6 +19,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { logout, resetDemo } from "@/app/actions/demo";
+import { BrandMark } from "@/components/BrandMark";
 
 const NAV = [
   { href: "/planbord", label: "Planbord" },
@@ -57,9 +58,7 @@ export function AppHeader({ employees, clients, messageCount, requestCount }: Pr
     <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
       <div className="mx-auto flex max-w-[1600px] items-center gap-x-4 px-4 py-2.5">
         <Link href="/planbord" className="flex items-center gap-2 font-semibold tracking-tight">
-          <span className="grid size-7 place-items-center rounded-md bg-primary text-xs font-bold text-primary-foreground">
-            AK
-          </span>
+          <BrandMark />
           <span>AllKidz Planning</span>
           <span className="rounded-full bg-accent px-2 py-0.5 text-[11px] font-medium text-accent-foreground">demo</span>
         </Link>

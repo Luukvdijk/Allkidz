@@ -6,7 +6,8 @@ import { toast } from "sonner";
 import { cn } from "cn";
 import type { Client, Employee, PlanData, Shift } from "@/lib/types";
 import { describeRule, expandRule } from "@/lib/recurrence";
-import { addDays, addMonths, DAY_SHORT, mondayOf, monthGrid, monthLabel, shortDate, toMin } from "@/lib/time";
+import { addDays, addMonths, DAY_SHORT, longDate, mondayOf, monthGrid, monthLabel, shortDate, toMin, weekday } from "@/lib/time";
+import { assignLanes, hourRange } from "@/lib/lanes";
 import type { ShiftRequest } from "@/lib/data/requests";
 import { createRequest } from "@/app/actions/requests";
 import { addLocation, archiveLocation } from "@/app/actions/locations";
@@ -68,7 +69,7 @@ export function ClientPortal({ client, data, today, requests, messages }: Props)
         ))}
       </div>
 
-      {tab === "planning" && <Planning data={data} shifts={myShifts} locations={myLocations} onCoach={setProfile} />}
+      {tab === "planning" && <Planning data={data} today={today} shifts={myShifts} locations={myLocations} onCoach={setProfile} />}
       {tab === "aanvragen" && <Requests client={client} data={data} requests={requests} onCoach={setProfile} />}
       {tab === "locaties" && <Locations client={client} data={data} today={today} />}
       {tab === "meldingen" &&
@@ -109,9 +110,21 @@ function CoachProfile({ employee, data, today, onClose }: { employee: Employee |
   );
 }
 
-function Planning({ data, shifts, locations, onCoach }: { data: PlanData; shifts: Shift[]; locations: PlanData["locations"]; onCoach: (e: Employee) => void }) {
-  const [range, setRange] = useState<"week" | "maand">("week");
-  const [date, setDate] = useState("2026-10-19");
+type Range = "dag" | "week" | "maand";
+type Loc = PlanData["locations"][number];
+
+interface PlanningProps {
+  data: PlanData;
+  today: string;
+  shifts: Shift[];
+  locations: Loc[];
+  onCoach: (e: Employee) => void;
+}
+
+function Planning({ data, today, shifts, locations, onCoach }: PlanningProps) {
+  const [range, setRange] = useState<Range>("dag");
+  // Start on the first day from today that has shifts, so the day view never opens empty.
+  const [date, setDate] = useState(() => shifts.map((s) => s.date).filter((d) => d >= today).sort()[0] ?? today);
   const [locFilter, setLocFilter] = useState("");
   const emp = new Map(data.employees.map((e) => [e.id, e]));
   const locName = new Map(locations.map((l) => [l.id, l.name]));
@@ -121,24 +134,39 @@ function Planning({ data, shifts, locations, onCoach }: { data: PlanData; shifts
     .sort((a, b) => a.date.localeCompare(b.date) || toMin(a.start) - toMin(b.start));
   const monday = mondayOf(date);
   const week = Array.from({ length: 5 }, (_, i) => addDays(monday, i));
+  const busy = new Set(shifts.map((s) => s.date));
+
+  // Day steps skip weekend days without shifts; week and month steps are whole periods.
+  const step = (dir: 1 | -1) => {
+    if (range === "week") return setDate(addDays(date, 7 * dir));
+    if (range === "maand") return setDate(addMonths(date, dir));
+    let d = addDays(date, dir);
+    while (weekday(d) > 5 && !busy.has(d)) d = addDays(d, dir);
+    setDate(d);
+  };
+  const openDay = (d: string) => {
+    setDate(d);
+    setRange("dag");
+  };
+  const title = range === "dag" ? longDate(date) : range === "week" ? `Week van ${shortDate(monday)}` : monthLabel(date);
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="inline-flex rounded-lg border bg-muted p-0.5" role="tablist">
-          {(["week", "maand"] as const).map((r) => (
+        <div className="inline-flex rounded-lg border bg-muted p-0.5" role="tablist" aria-label="Weergave">
+          {(["dag", "week", "maand"] as const).map((r) => (
             <button key={r} role="tab" aria-selected={range === r} onClick={() => setRange(r)} className={cn("rounded-md px-3 py-1 text-sm capitalize", range === r ? "bg-background font-medium shadow-xs" : "text-muted-foreground")}>
               {r}
             </button>
           ))}
         </div>
-        <Button variant="outline" size="icon-sm" aria-label="Vorige" onClick={() => setDate(range === "week" ? addDays(date, -7) : addMonths(date, -1))}>
+        <Button variant="outline" size="icon-sm" aria-label="Vorige" onClick={() => step(-1)}>
           <ChevronLeft />
         </Button>
-        <Button variant="outline" size="icon-sm" aria-label="Volgende" onClick={() => setDate(range === "week" ? addDays(date, 7) : addMonths(date, 1))}>
+        <Button variant="outline" size="icon-sm" aria-label="Volgende" onClick={() => step(1)}>
           <ChevronRight />
         </Button>
-        <span className="font-semibold first-letter:uppercase">{range === "week" ? `Week van ${shortDate(monday)}` : monthLabel(date)}</span>
+        <span className="font-semibold first-letter:uppercase">{title}</span>
         <NativeSelect aria-label="Locatie" value={locFilter} onChange={(e) => setLocFilter(e.target.value)} className="w-full sm:ml-auto sm:w-56">
           <option value="">Alle locaties</option>
           {locations.map((l) => (
@@ -150,13 +178,25 @@ function Planning({ data, shifts, locations, onCoach }: { data: PlanData; shifts
         </NativeSelect>
       </div>
 
-      {range === "week" ? (
+      {range === "dag" ? (
+        <DayTimeline
+          shifts={visible.filter((s) => s.date === date)}
+          locations={locations.filter((l) => (!locFilter || l.id === locFilter) && (!l.archived || visible.some((s) => s.date === date && s.locationId === l.id)))}
+          emp={emp}
+          act={act}
+          onCoach={onCoach}
+        />
+      ) : range === "week" ? (
         <div className="space-y-2">
           {week.map((d) => {
             const list = visible.filter((s) => s.date === d);
             return (
               <section key={d} className="rounded-xl border bg-card p-3">
-                <h3 className="mb-1.5 text-sm font-semibold first-letter:uppercase">{shortDate(d)}</h3>
+                <h3 className="mb-1.5 text-sm font-semibold first-letter:uppercase">
+                  <button type="button" onClick={() => openDay(d)} className="first-letter:uppercase hover:underline">
+                    {shortDate(d)}
+                  </button>
+                </h3>
                 {list.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Geen diensten.</p>
                 ) : (
@@ -171,13 +211,9 @@ function Planning({ data, shifts, locations, onCoach }: { data: PlanData; shifts
                             {s.fn}
                             {s.activityId && ` · ${act.get(s.activityId)}`}
                           </span>
-                          {e ? (
-                            <button type="button" onClick={() => onCoach(e)} className="ml-auto rounded-full bg-ok/15 px-2 py-0.5 text-xs font-medium text-ok hover:underline">
-                              1/1 · {e.name}
-                            </button>
-                          ) : (
-                            <span className="ml-auto rounded-full bg-warn/20 px-2 py-0.5 text-xs font-medium text-warn-foreground">0/1 nog niet gevuld</span>
-                          )}
+                          <span className="ml-auto">
+                            <CoachPill coach={e ?? null} onCoach={onCoach} />
+                          </span>
                         </li>
                       );
                     })}
@@ -201,7 +237,7 @@ function Planning({ data, shifts, locations, onCoach }: { data: PlanData; shifts
               <button
                 key={d}
                 type="button"
-                onClick={() => { setDate(d); setRange("week"); }}
+                onClick={() => openDay(d)}
                 className={cn("min-h-16 border-b border-l p-1.5 text-left hover:bg-muted/50", !d.startsWith(date.slice(0, 7)) && "bg-muted/30 text-muted-foreground")}
               >
                 <span className="tabular-nums">{Number(d.slice(8))}</span>
@@ -211,6 +247,115 @@ function Planning({ data, shifts, locations, onCoach }: { data: PlanData; shifts
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+function CoachPill({ coach, onCoach }: { coach: Employee | null; onCoach: (e: Employee) => void }) {
+  return coach ? (
+    <button type="button" onClick={() => onCoach(coach)} className="rounded-full bg-ok/15 px-2 py-0.5 text-xs font-medium text-ok hover:underline">
+      1/1 · {coach.name}
+    </button>
+  ) : (
+    <span className="rounded-full bg-warn/20 px-2 py-0.5 text-xs font-medium text-warn-foreground">0/1 nog niet gevuld</span>
+  );
+}
+
+interface DayProps {
+  shifts: Shift[];
+  locations: Loc[];
+  emp: Map<string, Employee>;
+  act: Map<string, string>;
+  onCoach: (e: Employee) => void;
+}
+
+/** One row per location with its shifts on a time axis. On a phone the same rows are a plain list. */
+function DayTimeline({ shifts, locations, emp, act, onCoach }: DayProps) {
+  const { from, to } = hourRange(shifts);
+  const span = (to - from) * 60;
+  const pct = (t: string) => ((toMin(t) - from * 60) / span) * 100;
+  const hours = Array.from({ length: to - from + 1 }, (_, i) => from + i);
+  const filled = shifts.filter((s) => s.employeeId).length;
+
+  if (locations.length === 0) return <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">Geen locaties.</p>;
+
+  return (
+    <div className="space-y-2">
+      <p className="text-sm text-muted-foreground">
+        {shifts.length === 0 ? "Geen diensten op deze dag." : `${shifts.length} ${shifts.length === 1 ? "dienst" : "diensten"}, ${filled} gevuld`}
+        {shifts.length > filled && <span className="font-medium text-warn-foreground">, {shifts.length - filled} nog open</span>}
+      </p>
+      <div className="overflow-hidden rounded-xl border bg-card">
+        <div className="hidden border-b bg-muted/60 sm:grid sm:grid-cols-[13rem_1fr]">
+          <span className="px-3 py-1.5 text-xs font-medium text-muted-foreground">Locatie</span>
+          <div className="relative h-7" aria-hidden>
+            {hours.map((h) => (
+              <span key={h} className="absolute top-1.5 -translate-x-1/2 text-[11px] text-muted-foreground tabular-nums first:translate-x-0 last:-translate-x-full" style={{ left: `${((h - from) / (to - from)) * 100}%` }}>
+                {String(h).padStart(2, "0")}:00
+              </span>
+            ))}
+          </div>
+        </div>
+        <ul className="divide-y">
+          {locations.map((l) => {
+            const list = shifts.filter((s) => s.locationId === l.id).sort((a, b) => toMin(a.start) - toMin(b.start));
+            const { lanes, count } = assignLanes(list);
+            const open = list.filter((s) => !s.employeeId).length;
+            return (
+              <li key={l.id} className="sm:grid sm:grid-cols-[13rem_1fr]" aria-label={`${l.name}, ${list.length} ${list.length === 1 ? "dienst" : "diensten"}`}>
+                <div className="px-3 pt-2.5 sm:py-2.5">
+                  <p className="text-sm font-medium">{l.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {l.type} · {l.city}
+                    {open > 0 && <span className="font-medium text-warn-foreground"> · {open} open</span>}
+                  </p>
+                </div>
+
+                {/* Phone: a list. */}
+                <ul className="space-y-1 px-3 pt-1 pb-2.5 sm:hidden">
+                  {list.length === 0 && <li className="text-xs text-muted-foreground">Geen diensten.</li>}
+                  {list.map((s) => (
+                    <li key={s.id} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+                      <span className="font-medium tabular-nums">{s.start}-{s.end}</span>
+                      <span className="text-muted-foreground">
+                        {s.fn}
+                        {s.activityId && ` · ${act.get(s.activityId)}`}
+                      </span>
+                      <span className="ml-auto">
+                        <CoachPill coach={s.employeeId ? (emp.get(s.employeeId) ?? null) : null} onCoach={onCoach} />
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Wider screens: bars on the time axis. */}
+                <div className="relative hidden border-l sm:block" style={{ height: `${Math.max(count, 1) * 2.5 + 1}rem` }}>
+                  {hours.map((h) => (
+                    <span key={h} className="absolute inset-y-0 border-l border-dashed border-border/70" style={{ left: `${((h - from) / (to - from)) * 100}%` }} aria-hidden />
+                  ))}
+                  {list.map((s, i) => {
+                    const coach = s.employeeId ? emp.get(s.employeeId) : null;
+                    const label = `${s.start}-${s.end} · ${coach ? coach.name : "nog niet gevuld"}`;
+                    const detail = `${label} · ${s.fn}${s.activityId ? ` · ${act.get(s.activityId)}` : ""}`;
+                    const style = { left: `${pct(s.start)}%`, width: `${pct(s.end) - pct(s.start)}%`, top: `${lanes[i] * 2.5 + 0.5}rem` };
+                    const cls = "absolute flex h-8 items-center overflow-hidden rounded-md border px-2 text-left text-xs whitespace-nowrap";
+                    return coach ? (
+                      <button key={s.id} type="button" title={detail} onClick={() => onCoach(coach)} style={style} className={cn(cls, "border-ok/40 bg-ok/15 font-medium text-ok hover:bg-ok/25")}>
+                        <span className="truncate">{label}</span>
+                      </button>
+                    ) : (
+                      <div key={s.id} title={detail} style={style} className={cn(cls, "border-dashed border-warn bg-warn/20 font-medium text-warn-foreground")}>
+                        <span className="truncate">{label}</span>
+                      </div>
+                    );
+                  })}
+                  {list.length === 0 && <span className="absolute top-3 left-3 text-xs text-muted-foreground">Geen diensten.</span>}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </div>
   );
 }

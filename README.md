@@ -17,7 +17,8 @@ Demo of a planning app for AllKidz: a planner (Sanne) plans shifts and immediate
 Extension on branch `dev` (main keeps the version above):
 
 - **Licences** (VOG, EHBO, Kinder-EHBO, BHV, Toezicht zwembad) with expiry dates. Requirements per location type (KDV: Kinder-EHBO, zwembad: EHBO) plus extra requirements per shift. Missing or expired licences are conflicts; a licence expiring on the day of the shift is still valid.
-- **Client portal per organisation**: planning across all its locations, shift requests (approved or rejected by the planner, with status and coach), add and archive locations, notifications, and a coach profile with only first name, functions and licence status.
+- **Client portal per organisation**: planning across all its locations (day timeline per location by default, plus week and month), shift requests (approved or rejected by the planner, with status and coach), add and archive locations, notifications, and a coach profile with only first name, functions and licence status.
+- **AllKidz colours**: the theme uses the yellow, blue and pink of the all-kidz.nl logo and its typeface Assistant. Statuses stay readable: open shifts pink, warnings yellow, conflicts red.
 - **Sport bags**: activities with a packing list and physical bags. A bag stays with one coach for the day; two coaches with the same bag on one day is a conflict. The employee app shows "Neem mee" with a checklist and a missing-items report; the planner has a bag board.
 - **New locations** borrow travel times from a location in the same city; in an unknown city the planner sees "reistijd onbekend" instead of a false all-clear.
 

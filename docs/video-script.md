@@ -36,7 +36,7 @@ Tip: neem op met Loom, scherm + gezicht. Begin met een verse login, zodat je met
 
 ## 6:00 Opdrachtgever boekt, planner plant (1:30)
 
-- Bekijk als Sportbedrijf Kust & Rijn: planning over alle zwembaden, nieuwe aanvraag (Aqualessen, Waterlelie, maandag 26 oktober).
+- Bekijk als Sportbedrijf Kust & Rijn: de dag als tijdlijn per zwembad (ook week en maand), nieuwe aanvraag (Aqualessen, Waterlelie, maandag 26 oktober).
 - Planner: Aanvragen, goedkeuren, op het planbord "Stel iemand voor": alleen coaches met geldige EHBO, Nina staat er niet tussen.
 - Terug als opdrachtgever: "Ingepland met ...", profiel met licenties, geen achternaam of BSN.
 - Locatie toevoegen in Utrecht: "reistijden nog onbekend". "Liever eerlijk onbekend dan een vals groen vinkje."

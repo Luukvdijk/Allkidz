@@ -21,8 +21,14 @@ async function viewAs(page: Page, label: string) {
 test("client requests a pool shift, planner approves and assigns a licensed coach, client sees the coach's licences", async ({ page }) => {
   await login(page);
 
-  // Client: request one Aqualessen shift at a pool on Monday 26 October.
+  // Client: opens on the day view, one timeline row per location; week and month are one click away.
   await viewAs(page, "Sportbedrijf Kust & Rijn");
+  await expect(page.getByRole("tab", { name: "dag" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("listitem", { name: /^Zwembad De Waterlelie, \d+ dienst/ })).toBeVisible();
+  await page.getByRole("tab", { name: "maand" }).click();
+  await expect(page.getByText("oktober 2026")).toBeVisible();
+
+  // Client: request one Aqualessen shift at a pool on Monday 26 October.
   await page.getByRole("tab", { name: /Aanvragen/ }).click();
   await page.getByLabel("Locatie").selectOption({ label: "Zwembad De Waterlelie" });
   await expect(page.getByLabel("Functie")).toHaveValue("Aqualessen");
