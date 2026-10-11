@@ -2,8 +2,9 @@ import type { PlanData, Shift } from "@/lib/types";
 import { toMin } from "@/lib/time";
 import { travelLookup } from "./travel";
 
-/** ok: enough time; krap: exactly the travel time (valid, but tight); te-krap: too little; overlap: shifts overlap */
-export type GapStatus = "ok" | "krap" | "te-krap" | "overlap";
+/** ok: enough time; krap: exactly the travel time (valid, but tight); te-krap: too little; overlap: shifts overlap;
+ * onbekend: no travel time known (e.g. a newly added location in a new city) */
+export type GapStatus = "ok" | "krap" | "te-krap" | "overlap" | "onbekend";
 
 export interface Gap {
   fromShiftId: string;
@@ -31,6 +32,7 @@ export function buildDayTimeline(data: PlanData, employeeId: string, date: strin
     const need = travel(a.locationId, b.locationId);
     let status: GapStatus = "ok";
     if (gap < 0) status = "overlap";
+    else if (need === null) status = "onbekend";
     else if (need !== null && gap < need) status = "te-krap";
     else if (need !== null && need > 0 && gap === need) status = "krap";
     gaps.push({ fromShiftId: a.id, toShiftId: b.id, gap, need, status });

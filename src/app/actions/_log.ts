@@ -5,7 +5,8 @@ import { isShortNotice } from "@/lib/notice";
 import { actingAs, type Actor } from "@/lib/data/actor";
 import type { Workspace } from "@/lib/data/load";
 
-export const SHIFT_COLS = "id, code, date, start_time, end_time, function, location_id, employee_id, status, note";
+export const SHIFT_COLS =
+  "id, code, date, start_time, end_time, function, location_id, employee_id, status, note, extra_requirements, activity_id, bag_id";
 
 export interface ShiftRow {
   id: string;
@@ -18,6 +19,9 @@ export interface ShiftRow {
   employee_id: string | null;
   status: string;
   note: string | null;
+  extra_requirements?: string[];
+  activity_id?: string | null;
+  bag_id?: string | null;
 }
 
 export async function logChange(

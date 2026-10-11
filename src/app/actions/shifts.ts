@@ -3,99 +3,30 @@
 import { refresh } from "next/cache";
 import { supabaseServer, type Supabase } from "@/lib/supabase/server";
 import { getWorkspace } from "@/lib/data/load";
-import { expandRule, describeRule, type RecurrenceRule } from "@/lib/recurrence";
 import type { Actor } from "@/lib/data/actor";
 import { SHIFT_COLS, employeeName, logChange, notifyClientIfShortNotice, type ShiftRow } from "./_log";
+import { insertShifts, validTimes, type NewShiftInput } from "./_insert";
+
+export type { NewShiftInput };
 
 export type ActionResult = { ok: true; notified?: boolean; firstDate?: string } | { error: string };
 
-const TIME = /^\d{2}:\d{2}$/;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const now = () => new Date().toISOString();
 
-function validTimes(start: string, end: string): string | null {
-  if (!TIME.test(start) || !TIME.test(end)) return "Vul een geldige begin- en eindtijd in.";
-  if (end <= start) return "De eindtijd moet na de begintijd liggen.";
-  return null;
-}
 
 async function getShift(sb: Supabase, id: string) {
   const { data } = await sb.from("shifts").select(SHIFT_COLS).eq("id", id).single();
   return data as ShiftRow | null;
 }
 
-async function nextCodes(sb: Supabase, n: number): Promise<string[]> {
-  const { data } = await sb.from("shifts").select("code").order("code", { ascending: false }).limit(1);
-  let max = Number(data?.[0]?.code?.slice(1) ?? 0);
-  return Array.from({ length: n }, () => `D${String(++max).padStart(3, "0")}`);
-}
-
-export interface NewShiftInput {
-  employeeId: string | null;
-  locationId: string;
-  fn: string;
-  start: string;
-  end: string;
-  note: string | null;
-  rule: RecurrenceRule;
-  actor: Actor;
-}
-
 export async function createShifts(input: NewShiftInput): Promise<ActionResult> {
-  const timeError = validTimes(input.start, input.end);
-  if (timeError) return { error: timeError };
-  const dates = expandRule(input.rule);
-  if (dates.length === 0) return { error: "Kies minstens één datum." };
-  if (dates.length > 200) return { error: "Maximaal 200 diensten tegelijk." };
-  if (!dates.every((d) => DATE.test(d))) return { error: "Ongeldige datum." };
-
   const sb = await supabaseServer();
   const ws = await getWorkspace(sb);
-  let seriesId: string | null = null;
-  if (dates.length > 1) {
-    const { data, error } = await sb
-      .from("shift_series")
-      .insert({ workspace_id: ws.id, rule: input.rule, description: describeRule(input.rule) })
-      .select("id")
-      .single();
-    if (error) return { error: "Opslaan mislukt." };
-    seriesId = data.id;
-  }
-  const codes = await nextCodes(sb, dates.length);
-  const { data: created, error } = await sb
-    .from("shifts")
-    .insert(
-      dates.map((date, i) => ({
-        workspace_id: ws.id,
-        code: codes[i],
-        date,
-        start_time: input.start,
-        end_time: input.end,
-        location_id: input.locationId,
-        function: input.fn,
-        employee_id: input.employeeId,
-        note: input.note?.trim() || null,
-        series_id: seriesId,
-      })),
-    )
-    .select(SHIFT_COLS);
-  if (error || !created) return { error: "Opslaan mislukt." };
-
-  const { error: logError } = await sb.from("change_log").insert(
-    (created as ShiftRow[]).map((s) => ({
-      workspace_id: ws.id,
-      actor_role: input.actor.role,
-      actor_name: input.actor.name,
-      action: "shift_created",
-      shift_id: s.id,
-      shift_code: s.code,
-      after: s,
-      reason: seriesId ? describeRule(input.rule) : null,
-    })),
-  );
-  if (logError) return { error: "Opgeslagen, maar het wijzigingslog kon niet worden bijgewerkt." };
+  const r = await insertShifts(sb, ws, input);
+  if ("error" in r) return r;
   refresh();
-  return { ok: true, firstDate: dates[0] };
+  return { ok: true, firstDate: r.dates[0] };
 }
 
 export interface ShiftPatch {
@@ -106,6 +37,9 @@ export interface ShiftPatch {
   start: string;
   end: string;
   note: string | null;
+  activityId?: string | null;
+  bagId?: string | null;
+  extraRequirements?: string[];
 }
 
 function describeChanges(a: ShiftRow, b: ShiftRow): string {
@@ -137,6 +71,9 @@ export async function updateShift(id: string, patch: ShiftPatch, actor: Actor): 
       start_time: patch.start,
       end_time: patch.end,
       note: patch.note?.trim() || null,
+      activity_id: patch.activityId ?? null,
+      bag_id: patch.bagId ?? null,
+      extra_requirements: patch.extraRequirements ?? [],
       updated_at: now(),
     })
     .eq("id", id)
@@ -144,8 +81,10 @@ export async function updateShift(id: string, patch: ShiftPatch, actor: Actor): 
     .single();
   if (error || !data) return { error: "Opslaan mislukt." };
   const after = data as ShiftRow;
-  const logId = await logChange(sb, { ws, actor, action: "shift_updated", shift: after, before, after });
   const changes = describeChanges(before, after);
+  // A change of only the bag is logged as such; it does not concern the client.
+  const onlyBag = !changes && (before.bag_id ?? null) !== (after.bag_id ?? null);
+  const logId = await logChange(sb, { ws, actor, action: onlyBag ? "bag_changed" : "shift_updated", shift: after, before, after });
   // Notify when the earliest of the old and new date falls within the notice period.
   const earliest = before.date < after.date ? before.date : after.date;
   const notified = changes

@@ -62,6 +62,11 @@ export function shortDate(iso: string): string {
   return `${DAY_SHORT[weekday(iso) - 1]} ${Number(iso.slice(8))} ${MONTH_SHORT[Number(iso.slice(5, 7)) - 1]}`;
 }
 
+/** "1 okt" */
+export function dayMonth(iso: string): string {
+  return `${Number(iso.slice(8))} ${MONTH_SHORT[Number(iso.slice(5, 7)) - 1]}`;
+}
+
 export function longDate(iso: string): string {
   return `${DAY_LONG[weekday(iso) - 1]} ${Number(iso.slice(8))} ${MONTH_LONG[Number(iso.slice(5, 7)) - 1]}`;
 }

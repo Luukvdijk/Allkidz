@@ -38,3 +38,31 @@ Running notes on how AI (Claude Code) was used, what was decided, and what had t
   - ESLint (React compiler rules) caught a component defined inside render (ListView table header) and unescaped quotes. Fixed.
   - The employee "Aannemen" toast promised that the client would see the change, even when no message is sent (change outside the notice period). Made it depend on whether a message was actually created.
 - Tests: 64 unit tests (golden test included) and one Playwright end-to-end test (login, conflicts, krap, remove with reason, log, outbox). Production build green.
+
+## 2026-10-11: licences, client portal, sport bags (branch dev)
+
+- Scope decision with Claude: four pieces (licences, clients with locations, requests + coach profile, bags). Main stays the delivered version; this goes to dev so I can choose what to show.
+- The supplied test data has none of this. Chose a transparent, self-made addition in a separate file, with a generator script and an independent analysis script, instead of editing their data. Asked Jesse whether that is OK.
+- Picked the deliberate cases after looking at real shift counts: a "missing VOG" case would flood the board (everyone has 4+ shifts), so I replaced it with an extra BHV requirement on one busy shift.
+- Verified instead of assumed:
+  - Analysis script first (4 licence conflicts, 1 bag double, traps clean), then the second golden test. The original golden test still gives exactly 15.
+  - Database checksum style check by counts, plus the two-visitor isolation test again for the new tables.
+- Corrections I made to AI output:
+  - Activities were first assigned to 07:30 morning shifts; nobody plays Jachtseizoen before school. Limited them to afternoon shifts.
+  - The live check (`conflictsIfAssigned`) only looked at the employee's own day, so it would have missed a bag held by another coach. Wrote a failing test first, then included same-bag shifts.
+  - A shared insert helper was first exported from a "use server" file, which would have made it a callable endpoint. Moved it to a server-only module.
+  - New locations would have silently skipped the travel-time check (no data means no conflict). Added an explicit "reistijd onbekend" status with a test.
+  - Supabase's advisor reported "anonymous access" on every table and policies on seed tables that have none. Checked: by design (anonymous demo logins, own-workspace policies) and a linter mix-up between same-named tables; only two missing seed indexes were real.
+- Tests: 85 unit tests (two golden tests), three Playwright end-to-end tests (core flow; client request to planned coach with licences and new location; bag report). Lint clean, build green.
+
+## 2026-10-11 (later): feedback rounds on dev
+
+- What I asked for: the employee page as a normal web page that keeps the app layout on a phone; a client day view per location (timeline on desktop, vertical calendar on a phone) with week and month; the AllKidz colours; missing bag items visible to coaches and planner; client sections and the planner menu without needless scrolling or hamburger.
+- Corrections and checks:
+  - For the colours Claude first opened allkidz.nl, which turned out to be a domain for sale. Their site is all-kidz.nl (the address in their own mail signature). The colours now come from their logo file (yellow, blue, pink) and their typeface Assistant, not from a guess.
+  - The lane helper for the timeline got a test first. One expectation in that test was wrong (I had assumed a short shift widens to 10:00-16:00; it widens evenly to 09:00-15:00, which is fine), so the test was corrected, not the code.
+  - The planner menu only went inline from a fixed 1280px, so most laptops saw a hamburger. Replaced with a measurement of whether it fits, plus a more compact right side. Checked at 1100, 1150 and 1280px.
+  - A generated Tailwind class name (`xl:${display}`) would never have been picked up by Tailwind; replaced with literal classes.
+  - Automatic bag choice now prefers a complete bag; covered by unit tests before the UI.
+  - An end-to-end check broke because "Gemeld" now also appears in "gemeld 11 okt door Emma"; made the selector exact rather than loosening the test.
+- Tests now: 95 unit tests, 4 Playwright end-to-end tests (including the client calendar at phone width). Lint clean, build green.

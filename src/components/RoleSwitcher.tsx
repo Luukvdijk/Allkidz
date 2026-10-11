@@ -5,11 +5,11 @@ import { NativeSelect } from "@/components/ui/native-select";
 
 interface Props {
   employees: { id: string; name: string }[];
-  locations: { id: string; name: string }[];
+  clients: { id: string; name: string }[];
 }
 
 /** "Bekijk als": switch between the planner, an employee (phone view) and a client, inside the same sandbox. */
-export function RoleSwitcher({ employees, locations, fullWidth = false, onNavigate }: Props & { fullWidth?: boolean; onNavigate?: () => void }) {
+export function RoleSwitcher({ employees, clients, fullWidth = false, onNavigate }: Props & { fullWidth?: boolean; onNavigate?: () => void }) {
   const router = useRouter();
   const pathname = usePathname();
   const [, section, id] = pathname.split("/");
@@ -17,7 +17,7 @@ export function RoleSwitcher({ employees, locations, fullWidth = false, onNaviga
 
   return (
     <label className={fullWidth ? "grid text-sm" : "flex items-center gap-2 text-sm"}>
-      {!fullWidth && <span className="hidden text-muted-foreground sm:inline">Bekijk als</span>}
+      {!fullWidth && <span className="hidden text-muted-foreground 2xl:inline">Bekijk als</span>}
       <NativeSelect
         aria-label="Bekijk als"
         value={value}
@@ -25,10 +25,10 @@ export function RoleSwitcher({ employees, locations, fullWidth = false, onNaviga
           onNavigate?.();
           router.push(e.target.value);
         }}
-        className={fullWidth ? "w-full" : "w-48 sm:w-56"}
+        className={fullWidth ? "w-full" : "w-48"}
       >
         <option value="/planbord">Planner (Sanne)</option>
-        <optgroup label="Medewerker (telefoon)">
+        <optgroup label="Medewerker">
           {employees.map((e) => (
             <option key={e.id} value={`/medewerker/${e.id}`}>
               {e.name}
@@ -36,9 +36,9 @@ export function RoleSwitcher({ employees, locations, fullWidth = false, onNaviga
           ))}
         </optgroup>
         <optgroup label="Opdrachtgever">
-          {locations.map((l) => (
-            <option key={l.id} value={`/opdrachtgever/${l.id}`}>
-              {l.name}
+          {clients.map((c) => (
+            <option key={c.id} value={`/opdrachtgever/${c.id}`}>
+              {c.name}
             </option>
           ))}
         </optgroup>
