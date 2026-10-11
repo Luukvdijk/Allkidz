@@ -9,6 +9,7 @@ import type { PlanData } from "@/lib/types";
 import { describeRule, expandRule } from "@/lib/recurrence";
 import { shortDate } from "@/lib/time";
 import type { ShiftRequest } from "@/lib/data/requests";
+import { MissingNotice } from "@/components/bags/MissingNotice";
 import { approveRequest, rejectRequest } from "@/app/actions/requests";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -64,13 +65,13 @@ export function RequestInbox({ requests, data }: { requests: ShiftRequest[]; dat
         {open.length === 0 ? (
           <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">Geen open aanvragen.</p>
         ) : (
-          <ul className="space-y-2">{open.map((r) => <RequestCard key={r.id} r={r} names={names} pending={pending} onApprove={approve} onReject={setRejecting} />)}</ul>
+          <ul className="space-y-2">{open.map((r) => <RequestCard key={r.id} r={r} names={names} data={data} pending={pending} onApprove={approve} onReject={setRejecting} />)}</ul>
         )}
       </section>
       {done.length > 0 && (
         <section>
           <h2 className="mb-2 text-sm font-semibold">Afgehandeld ({done.length})</h2>
-          <ul className="space-y-2 opacity-90">{done.map((r) => <RequestCard key={r.id} r={r} names={names} pending={pending} onApprove={approve} onReject={setRejecting} />)}</ul>
+          <ul className="space-y-2 opacity-90">{done.map((r) => <RequestCard key={r.id} r={r} names={names} data={data} pending={pending} onApprove={approve} onReject={setRejecting} />)}</ul>
         </section>
       )}
 
@@ -96,6 +97,7 @@ export function RequestInbox({ requests, data }: { requests: ShiftRequest[]; dat
 }
 
 interface CardProps {
+  data: PlanData;
 r: ShiftRequest;
 names: { client: Map<string, string>; loc: Map<string, string>; act: Map<string, string> };
 pending: boolean;
@@ -103,7 +105,7 @@ onApprove: (r: ShiftRequest) => void;
 onReject: (r: ShiftRequest) => void;
 }
 
-function RequestCard({ r, names, pending, onApprove, onReject }: CardProps) {
+function RequestCard({ r, names, data, pending, onApprove, onReject }: CardProps) {
 const { client, loc, act } = names;
   const dates = expandRule(r.rule);
   return (
@@ -121,6 +123,9 @@ const { client, loc, act } = names;
           </p>
           {r.note && <p className="mt-1 border-l-2 pl-2 text-sm italic">{r.note}</p>}
           {r.status === "afgewezen" && <p className="mt-1 text-sm text-destructive">Reden: {r.reason}</p>}
+          {r.status === "aangevraagd" &&
+            r.activityId &&
+            (data.bags ?? []).filter((b) => b.activityId === r.activityId).map((b) => <MissingNotice key={b.id} bagId={b.id} data={data} className="mt-2" />)}
         </div>
         <div className="text-right text-xs text-muted-foreground">
           <span className={cn("rounded-full px-2 py-0.5 font-medium", r.status === "aangevraagd" ? "bg-primary text-primary-foreground" : "bg-muted")}>

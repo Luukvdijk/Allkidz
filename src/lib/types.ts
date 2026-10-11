@@ -45,6 +45,15 @@ export interface Bag {
   label: string;
 }
 
+/** An open "er mist iets" report on a bag (resolved ones are not loaded). */
+export interface MissingReport {
+  id: string;
+  bagId: string;
+  text: string;
+  createdAt: string;
+  employeeId: string | null;
+}
+
 /** Travel time between two location ids, the same in both directions. */
 export interface TravelTime {
   a: string;
@@ -94,6 +103,7 @@ export interface PlanData {
   clients?: Client[];
   activities?: Activity[];
   bags?: Bag[];
+  missing?: MissingReport[];
 }
 
 export type ConflictType = "overlap" | "travel" | "unavailable" | "function" | "licence" | "bag";

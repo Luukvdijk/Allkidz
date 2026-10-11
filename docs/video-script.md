@@ -44,7 +44,7 @@ Tip: neem op met Loom, scherm + gezicht. Begin met een verse login, zodat je met
 ## 7:30 Sporttassen (0:45)
 
 - Medewerker Emma op de telefoon: "Neem mee: Jachtseizoen tas 1", paklijst afvinken, "Er mist iets".
-- Planner, Tassen: de melding, en dinsdag dezelfde tas bij twee coaches.
+- Planner: op het planbord staat "Tas mist iets", en wie die tas kiest bij een nieuwe dienst ziet direct wat er mist. Tassen: de melding, en dinsdag dezelfde tas bij twee coaches.
 
 ## 8:15 Medewerker-app kort (0:30)
 

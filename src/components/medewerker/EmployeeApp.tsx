@@ -15,6 +15,7 @@ import { reportMissing } from "@/app/actions/materials";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LicenceList } from "@/components/profile/LicenceList";
+import { MissingNotice } from "@/components/bags/MissingNotice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -449,6 +450,7 @@ function BagPanel({ s, actor }: { s: Shift; actor: Actor }) {
         {open && <span className="text-xs text-muted-foreground tabular-nums">{ticked.length}/{activity.packingList.length}</span>}
         <ChevronDown className={cn("size-4 transition-transform", open && "rotate-180")} aria-hidden />
       </button>
+      <MissingNotice bagId={bag.id} data={data} className="mt-2" hint="Neem dit zelf mee als het kan. De planner weet ervan." />
       {open && (
         <div className="mt-2 space-y-1.5">
           <ul className="space-y-1">

@@ -1,6 +1,7 @@
 "use client";
 
-import { Backpack, MoreHorizontal, Pencil, ShieldCheck, Sparkles, UserMinus, XCircle } from "lucide-react";
+import { Backpack, MoreHorizontal, Pencil, ShieldCheck, Sparkles, TriangleAlert, UserMinus, XCircle } from "lucide-react";
+import { missingFor } from "@/lib/bags";
 import { cn } from "cn";
 import type { Shift } from "@/lib/types";
 import {
@@ -57,6 +58,7 @@ export function ShiftChip({ shift, variant = "full", showEmployee = false, dimme
   const open = !shift.employeeId;
   const activity = shift.activityId ? data.activities?.find((a) => a.id === shift.activityId) : undefined;
   const bag = shift.bagId ? data.bags?.find((b) => b.id === shift.bagId) : undefined;
+  const missing = missingFor(shift.bagId, data);
 
   return (
     <div
@@ -106,6 +108,12 @@ export function ShiftChip({ shift, variant = "full", showEmployee = false, dimme
                 <Backpack className="size-3" aria-hidden />
                 {activity.name}
                 {variant === "full" && <span className="opacity-75">· {bag ? bag.label.replace(`${activity.name} `, "") : "geen tas"}</span>}
+              </span>
+            )}
+            {missing.length > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-warn/20 px-1.5 py-0.5 font-medium text-warn-foreground" title={`Mist: ${missing.map((m) => m.text).join("; ")}`}>
+                <TriangleAlert className="size-3" aria-hidden />
+                Tas mist iets
               </span>
             )}
             {shift.extraRequirements?.map((r) => (

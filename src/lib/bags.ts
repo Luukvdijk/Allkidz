@@ -1,4 +1,4 @@
-import type { PlanData, Shift } from "@/lib/types";
+import type { MissingReport, PlanData, Shift } from "@/lib/types";
 
 export interface BagDouble {
   bagId: string;
@@ -27,12 +27,18 @@ export function bagDoubles(shifts: Shift[]): BagDouble[] {
   return out;
 }
 
-/** First bag of the activity that no other coach holds on that date, or null. */
+/** Open reports of something missing from this bag. */
+export function missingFor(bagId: string | null | undefined, data: PlanData): MissingReport[] {
+  return bagId ? (data.missing ?? []).filter((m) => m.bagId === bagId) : [];
+}
+
+/** A bag of the activity that no other coach holds on that date, preferring one with nothing missing; null when none is free. */
 export function pickBag(activityId: string, date: string, employeeId: string | null, data: PlanData, ignoreShiftId?: string): string | null {
   const taken = new Set(
     data.shifts
       .filter((s) => s.id !== ignoreShiftId && s.date === date && holds(s) && s.employeeId !== employeeId)
       .map((s) => s.bagId),
   );
-  return (data.bags ?? []).find((b) => b.activityId === activityId && !taken.has(b.id))?.id ?? null;
+  const free = (data.bags ?? []).filter((b) => b.activityId === activityId && !taken.has(b.id));
+  return (free.find((b) => missingFor(b.id, data).length === 0) ?? free[0])?.id ?? null;
 }

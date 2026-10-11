@@ -41,7 +41,7 @@ export const loadWorkspace = cache(async (): Promise<{ ws: Workspace; data: Plan
   // Request-time data (session cookie): never part of the prerendered shell.
   await connection();
   const sb = await supabaseServer();
-  const [ws, e, l, t, u, shifts, lic, cl, act, bg, req] = await Promise.all([
+  const [ws, e, l, t, u, shifts, lic, cl, act, bg, req, mis] = await Promise.all([
     getWorkspace(sb),
     sb.from("employees").select("id, name, functions").order("name"),
     sb.from("locations").select("id, name, type, city, client_id, archived_at").order("name"),
@@ -58,8 +58,9 @@ export const loadWorkspace = cache(async (): Promise<{ ws: Workspace; data: Plan
     sb.from("activities").select("id, name, packing_list").order("name"),
     sb.from("bags").select("id, activity_id, label").order("label"),
     sb.from("workspaces").select("requirements").limit(1).single(),
+    sb.from("material_reports").select("id, bag_id, text, created_at, employee_id").is("resolved_at", null).order("created_at"),
   ]);
-  for (const r of [e, l, t, u, lic, cl, act, bg, req]) if (r.error) throw r.error;
+  for (const r of [e, l, t, u, lic, cl, act, bg, req, mis]) if (r.error) throw r.error;
   return {
     ws,
     data: {
@@ -82,6 +83,7 @@ export const loadWorkspace = cache(async (): Promise<{ ws: Workspace; data: Plan
       clients: cl.data!,
       activities: act.data!.map((x) => ({ id: x.id, name: x.name, packingList: x.packing_list as PackingItem[] })),
       bags: bg.data!.map((x) => ({ id: x.id, activityId: x.activity_id, label: x.label })),
+      missing: mis.data!.map((x) => ({ id: x.id, bagId: x.bag_id, text: x.text, createdAt: x.created_at, employeeId: x.employee_id })),
     },
   };
 });

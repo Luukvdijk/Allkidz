@@ -80,7 +80,13 @@ test("employee sees the bag and reports a missing item, planner sees it on the b
   await page.getByRole("button", { name: "Er mist iets" }).click();
   await page.getByLabel("Wat mist er?").fill("Fluitje kwijt");
   await page.getByRole("button", { name: "Meld aan planner" }).click();
-  await expect(page.getByText("Gemeld")).toBeVisible();
+  await expect(page.getByText("Gemeld", { exact: true })).toBeVisible();
+  // The report shows on the bag right away, for this coach and anyone else who gets the bag.
+  await expect(page.getByRole("status").filter({ hasText: "In Jachtseizoen tas 1 mist iets" }).first()).toContainText("Fluitje kwijt");
+
+  // Planner: the shift on the board is marked, and picking this bag in the form shows what is missing.
+  await page.goto("/planbord?d=2026-10-20&q=D003");
+  await expect(page.getByText("Tas mist iets").first()).toBeVisible();
 
   await page.goto("/tassen");
   await expect(page.getByText("“Fluitje kwijt”")).toBeVisible();

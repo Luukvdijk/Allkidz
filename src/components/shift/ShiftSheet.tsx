@@ -8,6 +8,7 @@ import type { Conflict, Location, Shift } from "@/lib/types";
 import { conflictsIfAssigned } from "@/lib/conflicts";
 import { expandRule } from "@/lib/recurrence";
 import { pickBag } from "@/lib/bags";
+import { MissingNotice } from "@/components/bags/MissingNotice";
 import { Checkbox } from "@/components/ui/checkbox";
 import { shortDate } from "@/lib/time";
 import { PLANNER } from "@/lib/data/actor";
@@ -222,6 +223,16 @@ function ShiftForm({ state, onClose, onCreated }: { state: SheetState; onClose: 
                 : "Let op: op sommige dagen is geen tas vrij."}
             </p>
           )}
+          {activityId &&
+            [...new Set((dates.length > 0 ? dates : [date]).map(bagFor))].map((b) => (
+              <MissingNotice
+                key={b ?? "none"}
+                bagId={b}
+                data={data}
+                className="col-span-2"
+                hint={bagChoice === AUTO ? "Er is geen complete tas vrij. Vul de tas aan of laat de coach het zelf meenemen." : "Kies een andere tas of zorg dat het aangevuld is."}
+              />
+            ))}
         </div>
 
         <fieldset className="grid gap-1.5">

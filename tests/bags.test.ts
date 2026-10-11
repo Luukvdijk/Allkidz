@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { bagDoubles, pickBag } from "@/lib/bags";
+import { bagDoubles, missingFor, pickBag } from "@/lib/bags";
 import type { PlanData, Shift } from "@/lib/types";
 
 let n = 0;
@@ -42,5 +42,27 @@ describe("pickBag", () => {
   it("ignores the shift being edited", () => {
     const d = data([s({ id: "self", employeeId: "emma" }), s({ employeeId: "lisa", bagId: "jacht2" })]);
     expect(pickBag("jacht", "2026-10-20", "anouk", d, "self")).toBe("jacht1");
+  });
+});
+
+describe("missing items", () => {
+  const withMissing = (shifts: Shift[]): PlanData => ({
+    ...data(shifts),
+    missing: [{ id: "m1", bagId: "jacht1", text: "Fluitje kwijt", createdAt: "2026-10-12T10:00:00Z", employeeId: "emma" }],
+  });
+
+  it("lists the open reports of a bag", () => {
+    expect(missingFor("jacht1", withMissing([])).map((m) => m.text)).toEqual(["Fluitje kwijt"]);
+    expect(missingFor("jacht2", withMissing([]))).toEqual([]);
+    expect(missingFor(null, withMissing([]))).toEqual([]);
+  });
+
+  it("pickBag prefers a complete bag over one with something missing", () => {
+    expect(pickBag("jacht", "2026-10-21", "anouk", withMissing([]))).toBe("jacht2");
+  });
+
+  it("pickBag still takes the incomplete bag when it is the only free one", () => {
+    const d = withMissing([s({ employeeId: "lisa", bagId: "jacht2" })]);
+    expect(pickBag("jacht", "2026-10-20", "anouk", d)).toBe("jacht1");
   });
 });
