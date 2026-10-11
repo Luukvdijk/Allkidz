@@ -11,21 +11,24 @@ interface Props {
   initialMonth: string;
   /** dates that already have data, shown with a dot */
   marked?: Set<string>;
+  /** first date that can be picked; earlier days are disabled */
+  min?: string;
 }
 
 /** Click dates to select loose dates for a recurring shift. */
-export function MiniCalendar({ selected, onToggle, initialMonth, marked }: Props) {
+export function MiniCalendar({ selected, onToggle, initialMonth, marked, min }: Props) {
   const [month, setMonth] = useState(initialMonth.slice(0, 8) + "01");
   const set = new Set(selected);
   const grid = monthGrid(month);
+  const atFirstMonth = !!min && month.slice(0, 7) <= min.slice(0, 7);
   return (
     <div className="rounded-lg border p-2">
       <div className="mb-1 flex items-center justify-between">
-        <button type="button" aria-label="Vorige maand" onClick={() => setMonth(addMonths(month, -1))} className="rounded p-1 hover:bg-muted">
+        <button type="button" aria-label="Vorige maand" disabled={atFirstMonth} onClick={() => setMonth(addMonths(month, -1))} className="press rounded p-1 hover:bg-muted disabled:pointer-events-none disabled:opacity-30">
           <ChevronLeft className="size-4" />
         </button>
         <span className="text-sm font-medium first-letter:uppercase">{monthLabel(month)}</span>
-        <button type="button" aria-label="Volgende maand" onClick={() => setMonth(addMonths(month, 1))} className="rounded p-1 hover:bg-muted">
+        <button type="button" aria-label="Volgende maand" onClick={() => setMonth(addMonths(month, 1))} className="press rounded p-1 hover:bg-muted">
           <ChevronRight className="size-4" />
         </button>
       </div>
@@ -38,16 +41,19 @@ export function MiniCalendar({ selected, onToggle, initialMonth, marked }: Props
         {grid.map((d) => {
           const inMonth = d.slice(0, 7) === month.slice(0, 7);
           const on = set.has(d);
+          const past = !!min && d < min;
           return (
             <button
               key={d}
               type="button"
               aria-pressed={on}
               aria-label={d}
+              disabled={past}
               onClick={() => onToggle(d)}
               className={cn(
-                "relative rounded-md py-1.5 tabular-nums transition-colors",
+                "relative rounded-md py-1.5 tabular-nums press",
                 !inMonth && "text-muted-foreground/50",
+                past && "pointer-events-none text-muted-foreground/30 line-through decoration-muted-foreground/30",
                 on ? "bg-primary font-semibold text-primary-foreground" : "hover:bg-muted",
               )}
             >

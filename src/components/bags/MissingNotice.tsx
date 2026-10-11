@@ -11,7 +11,7 @@ export function MissingNotice({ bagId, data, hint, className }: { bagId: string 
   const bag = data.bags?.find((b) => b.id === bagId);
   const who = new Map(data.employees.map((e) => [e.id, e.name]));
   return (
-    <div role="status" className={cn("rounded-md border border-warn/60 bg-warn/15 p-2 text-xs text-warn-foreground", className)}>
+    <div role="status" className={cn("rounded-md border border-warn/60 bg-warn/15 p-2 text-xs text-warn-foreground transition-[opacity,translate] duration-200 starting:-translate-y-1 starting:opacity-0", className)}>
       <p className="flex items-center gap-1.5 font-medium">
         <TriangleAlert className="size-3.5 shrink-0" aria-hidden />
         In {bag?.label ?? "deze tas"} mist iets

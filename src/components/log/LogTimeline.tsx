@@ -7,6 +7,9 @@ import { cn } from "cn";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { longDate, shortDate } from "@/lib/time";
+import { EmptyState } from "@/components/EmptyState";
+import { History } from "lucide-react";
+import { ACTIONS } from "@/lib/logActions";
 
 type Row = Record<string, unknown> | null;
 
@@ -39,25 +42,6 @@ interface Props {
   employeeNames: Record<string, string>;
   locationNames: Record<string, string>;
 }
-
-const ACTIONS: Record<string, string> = {
-  shift_created: "Dienst aangemaakt",
-  shift_updated: "Dienst gewijzigd",
-  shift_cancelled: "Dienst geannuleerd",
-  employee_removed: "Medewerker eraf gehaald",
-  employee_assigned: "Medewerker ingepland",
-  employee_cancelled_self: "Afgemeld door medewerker",
-  open_shift_accepted: "Open dienst aangenomen",
-  availability_changed: "Beschikbaarheid",
-  request_created: "Aanvraag ontvangen",
-  request_approved: "Aanvraag goedgekeurd",
-  request_rejected: "Aanvraag afgewezen",
-  location_added: "Locatie toegevoegd",
-  location_archived: "Locatie gearchiveerd",
-  material_reported: "Materiaal mist",
-  material_resolved: "Materiaal opgelost",
-  bag_changed: "Tas gewijzigd",
-};
 
 /** Actions whose `reason` field holds context rather than a reason. */
 const NEUTRAL_REASON: Record<string, string> = {
@@ -159,7 +143,7 @@ export function LogTimeline({ entries, cancelled, employeeNames, locationNames }
             role="tab"
             aria-selected={tab === t}
             onClick={() => setTab(t)}
-            className={cn("rounded-md px-3 py-1 text-sm", tab === t ? "bg-background font-medium shadow-xs" : "text-muted-foreground")}
+            className={cn("press rounded-md px-3 py-1 text-sm", tab === t ? "bg-background font-medium shadow-xs" : "text-muted-foreground")}
           >
             {t === "log" ? `Alle wijzigingen (${entries.length})` : `Geannuleerde diensten (${cancelled.length})`}
           </button>
@@ -168,7 +152,9 @@ export function LogTimeline({ entries, cancelled, employeeNames, locationNames }
 
       {tab === "cancelled" ? (
         cancelled.length === 0 ? (
-          <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">Nog geen geannuleerde diensten.</p>
+          <EmptyState icon={History} title="Nog geen geannuleerde diensten">
+            Annuleer je een dienst op het planbord, dan staat hij hier met de reden erbij.
+          </EmptyState>
         ) : (
           <ul className="divide-y rounded-xl border bg-card">
             {cancelled.map((c) => (
@@ -208,9 +194,9 @@ export function LogTimeline({ entries, cancelled, employeeNames, locationNames }
           </div>
 
           {groups.length === 0 && (
-            <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-              {entries.length === 0 ? "Nog geen wijzigingen. Alles wat je op het planbord of in de medewerker-app doet, komt hier te staan." : "Geen wijzigingen met deze filters."}
-            </p>
+            <EmptyState icon={History} title={entries.length === 0 ? "Nog geen wijzigingen" : "Geen wijzigingen met deze filters"}>
+              {entries.length === 0 ? "Alles wat je op het planbord of in de medewerker-app doet, komt hier te staan." : "Pas de filters aan om meer te zien."}
+            </EmptyState>
           )}
 
           {groups.map(([d, list]) => (

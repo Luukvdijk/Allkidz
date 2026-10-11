@@ -21,6 +21,7 @@ import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { logout, resetDemo } from "@/app/actions/demo";
 import { BrandMark } from "@/components/BrandMark";
 import { CLIENT_TABS, clientTabFrom, goToClientTab } from "@/components/opdrachtgever/tabs";
+import { LinkPending } from "@/components/NavProgress";
 
 const NAV = [
   { href: "/planbord", label: "Planbord" },
@@ -42,7 +43,7 @@ interface Props {
 export function AppHeader({ employees, clients, messageCount, requestCount }: Props) {
   const pathname = usePathname();
   const clientView = pathname.startsWith("/opdrachtgever");
-  const plannerView = !pathname.startsWith("/medewerker") && !clientView;
+  const plannerView = !pathname.startsWith("/medewerker/") && !clientView;
   const clientTab = clientTabFrom(useSearchParams().get("tab"));
   const [resetOpen, setResetOpen] = useState(false);
   const [pending, start] = useTransition();
@@ -115,7 +116,7 @@ export function AppHeader({ employees, clients, messageCount, requestCount }: Pr
                     aria-current={clientTab === t ? "page" : undefined}
                     onClick={() => { goToClientTab(t); setMenuOpen(false); }}
                     className={cn(
-                      "flex items-center rounded-md px-3 py-2.5 text-left text-base transition-colors",
+                      "flex items-center rounded-md px-3 py-2.5 text-left text-base press",
                       clientTab === t ? "bg-accent font-medium text-accent-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
@@ -199,12 +200,13 @@ function NavLinks({ pathname, counts, large = false, onNavigate }: { pathname: s
         onClick={onNavigate}
         aria-current={active ? "page" : undefined}
         className={cn(
-          "flex items-center rounded-md whitespace-nowrap transition-colors",
+          "flex items-center rounded-md whitespace-nowrap press",
           large ? "px-3 py-2.5 text-base" : "px-2 py-1.5 text-sm",
           active ? "bg-accent font-medium text-accent-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
         )}
       >
         {n.label}
+        <LinkPending />
         {(counts[n.href] ?? 0) > 0 && (
           <span className="ml-1.5 rounded-full bg-primary px-1.5 text-[11px] font-medium text-primary-foreground">{counts[n.href]}</span>
         )}

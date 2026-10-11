@@ -6,6 +6,7 @@ import { getWorkspace } from "@/lib/data/load";
 import type { Actor } from "@/lib/data/actor";
 import { SHIFT_COLS, employeeName, logChange, notifyClientIfShortNotice, type ShiftRow } from "./_log";
 import { insertShifts, validTimes, type NewShiftInput } from "./_insert";
+import { PAST_DATE_ERROR } from "@/lib/time";
 
 export type { NewShiftInput };
 
@@ -61,6 +62,8 @@ export async function updateShift(id: string, patch: ShiftPatch, actor: Actor): 
   const ws = await getWorkspace(sb);
   const before = await getShift(sb, id);
   if (!before || before.status !== "active") return { error: "Dienst niet gevonden." };
+  // A shift that already lies in the past may keep its date (to fix a note), but nothing moves into the past.
+  if (patch.date !== before.date && patch.date < ws.today) return { error: PAST_DATE_ERROR };
   const { data, error } = await sb
     .from("shifts")
     .update({

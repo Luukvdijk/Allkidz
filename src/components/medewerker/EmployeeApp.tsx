@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { cn } from "cn";
 import type { Employee, PlanData, Shift } from "@/lib/types";
 import { conflictsIfAssigned } from "@/lib/conflicts";
-import { addDays, addMonths, DAY_SHORT, longDate, mondayOf, monthGrid, monthLabel, shortDate, toMin } from "@/lib/time";
+import { addDays, addMonths, DAY_SHORT, longDate, mondayOf, notBefore, monthGrid, monthLabel, shortDate, toMin } from "@/lib/time";
 import { durationMin, hoursLabel } from "@/lib/hours";
 import type { Actor } from "@/lib/data/actor";
 import { assignEmployee } from "@/app/actions/shifts";
@@ -23,6 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { ConflictLine } from "@/components/planbord/ConflictBadge";
 import { PlanProvider, usePlan, type Workspace } from "@/components/planbord/PlanContext";
 import { RemoveDialog, type RemoveState } from "@/components/shift/RemoveDialog";
+import { EmptyState } from "@/components/EmptyState";
 
 type Tab = "diensten" | "beschikbaar" | "open" | "profiel";
 type Range = "dag" | "week" | "maand";
@@ -68,7 +69,7 @@ function Phone({ employee, actor }: { employee: Employee; actor: Actor }) {
             onClick={() => setTab(t)}
             aria-current={tab === t ? "page" : undefined}
             className={cn(
-              "flex flex-col items-center gap-0.5 py-2 text-xs md:-mb-px md:flex-row md:gap-2 md:border-b-2 md:px-3 md:text-sm",
+              "press flex flex-col items-center gap-0.5 py-2 text-xs md:-mb-px md:flex-row md:gap-2 md:border-b-2 md:px-3 md:text-sm",
               tab === t ? "font-medium text-primary md:border-primary" : "text-muted-foreground md:border-transparent md:hover:text-foreground",
             )}
           >
@@ -145,7 +146,7 @@ function MyShifts({ mine, actor }: { mine: Shift[]; actor: Actor }) {
     <div className="space-y-3">
       <div className="grid grid-cols-3 rounded-lg border bg-muted p-0.5 text-sm md:w-72" role="tablist">
         {(["dag", "week", "maand"] as const).map((r) => (
-          <button key={r} role="tab" aria-selected={range === r} onClick={() => setRange(r)} className={cn("rounded-md py-1 capitalize", range === r ? "bg-background font-medium shadow-xs" : "text-muted-foreground")}>
+          <button key={r} role="tab" aria-selected={range === r} onClick={() => setRange(r)} className={cn("press rounded-md py-1 capitalize", range === r ? "bg-background font-medium shadow-xs" : "text-muted-foreground")}>
             {r}
           </button>
         ))}
@@ -188,7 +189,9 @@ function MyShifts({ mine, actor }: { mine: Shift[]; actor: Actor }) {
           })}
         </div>
       ) : inRange.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">Geen diensten in deze periode.</p>
+        <EmptyState icon={CalendarDays} title="Geen diensten in deze periode">
+          Kijk een week of maand verder, of pak een dienst op bij Open.
+        </EmptyState>
       ) : range === "dag" ? (
         <ul className="grid gap-2 md:grid-cols-2">
           {inRange.map((s) => <ShiftCard key={s.id} s={s} actor={actor} />)}
@@ -211,7 +214,7 @@ function MyShifts({ mine, actor }: { mine: Shift[]; actor: Actor }) {
 
 function Availability({ employee, actor }: { employee: Employee; actor: Actor }) {
   const { data, ws } = usePlan();
-  const [date, setDate] = useState("2026-10-21");
+  const [date, setDate] = useState(() => notBefore("2026-10-21", ws.today));
   const [wholeDay, setWholeDay] = useState(true);
   const [from, setFrom] = useState("09:00");
   const [to, setTo] = useState("17:00");

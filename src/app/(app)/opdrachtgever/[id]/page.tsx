@@ -5,7 +5,7 @@ import { loadWorkspace } from "@/lib/data/load";
 import { loadMessages } from "@/lib/data/messages";
 import { loadRequests } from "@/lib/data/requests";
 import { ClientPortal } from "@/components/opdrachtgever/ClientPortal";
-import { PageSkeleton } from "@/components/PageSkeleton";
+import { ClientSkeleton } from "@/components/PageSkeleton";
 
 export const metadata: Metadata = { title: "Opdrachtgever | AllKidz Planning (demo)" };
 
@@ -30,7 +30,7 @@ async function ClientData({ params }: { params: Promise<{ id: string }> }) {
 export default function ClientPage({ params }: PageProps<"/opdrachtgever/[id]">) {
   return (
     <main className="mx-auto max-w-6xl px-4 py-6">
-      <Suspense fallback={<PageSkeleton rows={4} />}>
+      <Suspense fallback={<ClientSkeleton />}>
         <ClientData params={params} />
       </Suspense>
     </main>

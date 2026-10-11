@@ -5,6 +5,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { getWorkspace } from "@/lib/data/load";
 import type { Actor } from "@/lib/data/actor";
 import { logChange } from "./_log";
+import { PAST_DATE_ERROR } from "@/lib/time";
 
 const TIME = /^\d{2}:\d{2}$/;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -21,6 +22,7 @@ export async function addUnavailability(
     return { error: "Je kunt alleen je eigen beschikbaarheid doorgeven." };
   const sb = await supabaseServer();
   const ws = await getWorkspace(sb);
+  if (p.date < ws.today) return { error: PAST_DATE_ERROR };
   const { data, error } = await sb
     .from("unavailability")
     .insert({

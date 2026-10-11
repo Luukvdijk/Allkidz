@@ -4,6 +4,31 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Motion: crisp and fast for a tool people use all day. Strong ease-out curves; built-in CSS easings feel weak. */
+@theme {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --default-transition-duration: 160ms;
+  --default-transition-timing-function: var(--ease-out);
+
+  /* Shadows tinted to the cool blue-grey background instead of neutral black. */
+  --shadow-xs: 0 1px 2px 0 oklch(0.35 0.04 250 / 0.07);
+  --shadow-sm: 0 1px 3px 0 oklch(0.35 0.04 250 / 0.09), 0 1px 2px -1px oklch(0.35 0.04 250 / 0.09);
+  --shadow-md: 0 4px 10px -2px oklch(0.35 0.04 250 / 0.1), 0 2px 4px -2px oklch(0.35 0.04 250 / 0.08);
+  --shadow-lg: 0 16px 32px -12px oklch(0.35 0.04 250 / 0.18), 0 4px 8px -4px oklch(0.35 0.04 250 / 0.08);
+}
+
+/* Pressable elements shrink a little while pressed, so a click always feels heard. */
+@utility press {
+  transition-property: color, background-color, border-color, box-shadow, opacity, scale;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease-out);
+  &:active:not(:disabled) {
+    scale: 0.97;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-warn: var(--warn);
@@ -153,5 +178,52 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+/* Reduced motion: keep fades (they help), drop movement and scaling. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    --tw-enter-scale: 1 !important;
+    --tw-exit-scale: 1 !important;
+    --tw-enter-translate-x: 0 !important;
+    --tw-enter-translate-y: 0 !important;
+    --tw-exit-translate-x: 0 !important;
+    --tw-exit-translate-y: 0 !important;
+    scroll-behavior: auto !important;
+  }
+  [data-slot="sheet-content"] {
+    translate: none !important;
+  }
+  .press:active,
+  [data-slot="button"]:active {
+    scale: none !important;
+  }
+}
+
+/* Indeterminate top bar while a page loads. Delayed, so a fast navigation never flashes it. */
+@keyframes nav-progress {
+  from {
+    translate: -100% 0;
+  }
+  to {
+    translate: 250% 0;
+  }
+}
+@keyframes nav-progress-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-progress-bar {
+    animation: none !important;
+    width: 100% !important;
+    opacity: 0.6;
   }
 }

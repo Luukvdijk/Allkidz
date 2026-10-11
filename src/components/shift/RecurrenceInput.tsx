@@ -2,7 +2,7 @@
 
 import { cn } from "cn";
 import { describeRule, type RecurrenceRule } from "@/lib/recurrence";
-import { addDays, DAY_LONG, DAY_SHORT, weekday } from "@/lib/time";
+import { addDays, DAY_LONG, DAY_SHORT, notBefore, weekday } from "@/lib/time";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -22,7 +22,9 @@ export interface RecurrenceState {
   to: string;
 }
 
-export function initialRecurrence(date: string): RecurrenceState {
+/** `min` (the demo's today) keeps the starting date out of the past. */
+export function initialRecurrence(start: string, min?: string): RecurrenceState {
+  const date = min ? notBefore(start, min) : start;
   return { mode: "once", date, dates: [date], weekdays: [weekday(date)], frequency: "1", nth: 1, from: date, to: addDays(date, 27) };
 }
 
@@ -39,7 +41,7 @@ const MODES: { m: Mode; label: string }[] = [
   { m: "pattern", label: "Patroon" },
 ];
 
-export function RecurrenceInput({ value, onChange, marked }: { value: RecurrenceState; onChange: (v: RecurrenceState) => void; marked?: Set<string> }) {
+export function RecurrenceInput({ value, onChange, marked, min }: { value: RecurrenceState; onChange: (v: RecurrenceState) => void; marked?: Set<string>; min: string }) {
   const set = (patch: Partial<RecurrenceState>) => onChange({ ...value, ...patch });
   const monthly = value.frequency === "monthly";
 
@@ -54,7 +56,7 @@ export function RecurrenceInput({ value, onChange, marked }: { value: Recurrence
             role="radio"
             aria-checked={value.mode === m}
             onClick={() => set({ mode: m })}
-            className={cn("rounded-md px-3 py-1 text-sm", value.mode === m ? "bg-background font-medium shadow-xs" : "text-muted-foreground")}
+            className={cn("press rounded-md px-3 py-1 text-sm", value.mode === m ? "bg-background font-medium shadow-xs" : "text-muted-foreground")}
           >
             {label}
           </button>
@@ -64,7 +66,7 @@ export function RecurrenceInput({ value, onChange, marked }: { value: Recurrence
       {value.mode === "once" && (
         <div className="grid gap-1.5">
           <Label htmlFor="rec-date">Datum</Label>
-          <Input id="rec-date" type="date" value={value.date} onChange={(e) => set({ date: e.target.value })} />
+          <Input id="rec-date" type="date" min={min} value={value.date} onChange={(e) => set({ date: e.target.value })} />
         </div>
       )}
 
@@ -74,6 +76,7 @@ export function RecurrenceInput({ value, onChange, marked }: { value: Recurrence
           <MiniCalendar
             selected={value.dates}
             initialMonth={value.date}
+            min={min}
             marked={marked}
             onToggle={(d) => set({ dates: value.dates.includes(d) ? value.dates.filter((x) => x !== d) : [...value.dates, d] })}
           />
@@ -118,7 +121,7 @@ export function RecurrenceInput({ value, onChange, marked }: { value: Recurrence
                     type="button"
                     aria-pressed={on}
                     onClick={() => set({ weekdays: on ? value.weekdays.filter((x) => x !== i + 1) : [...value.weekdays, i + 1] })}
-                    className={cn("w-10 rounded-md border py-1 text-sm", on ? "border-primary bg-primary text-primary-foreground" : "hover:bg-muted")}
+                    className={cn("press w-10 rounded-md border py-1 text-sm", on ? "border-primary bg-primary text-primary-foreground" : "hover:bg-muted")}
                   >
                     {d}
                   </button>
@@ -129,11 +132,11 @@ export function RecurrenceInput({ value, onChange, marked }: { value: Recurrence
           <div className="grid grid-cols-2 gap-2">
             <div className="grid gap-1.5">
               <Label htmlFor="rec-from">Vanaf</Label>
-              <Input id="rec-from" type="date" value={value.from} onChange={(e) => set({ from: e.target.value })} />
+              <Input id="rec-from" type="date" min={min} value={value.from} onChange={(e) => set({ from: e.target.value })} />
             </div>
             <div className="grid gap-1.5">
               <Label htmlFor="rec-to">Tot en met</Label>
-              <Input id="rec-to" type="date" value={value.to} onChange={(e) => set({ to: e.target.value })} />
+              <Input id="rec-to" type="date" min={notBefore(value.from, min)} value={value.to} onChange={(e) => set({ to: e.target.value })} />
             </div>
           </div>
         </div>

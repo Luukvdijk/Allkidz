@@ -23,6 +23,8 @@ import { LicenceList } from "@/components/profile/LicenceList";
 import { RecurrenceInput, initialRecurrence, toRule, type RecurrenceState } from "@/components/shift/RecurrenceInput";
 import { defaultFunction } from "@/components/shift/ShiftSheet";
 import { CLIENT_TABS, clientTabFrom, goToClientTab, type ClientTab } from "./tabs";
+import { EmptyState } from "@/components/EmptyState";
+import { BellOff } from "lucide-react";
 
 const FUNCTIONS = ["KidzCoach", "Toezichthouder", "Aqualessen", "Zwemonderwijzer", "Gymdocent"];
 const TYPES = ["BSO", "KDV", "TSO", "Zwembad", "School"];
@@ -61,7 +63,7 @@ export function ClientPortal({ client, data, today, requests, messages }: Props)
             aria-selected={tab === t}
             onClick={() => goToClientTab(t)}
             className={cn(
-              "-mb-px border-b-2 px-3 py-2 text-sm whitespace-nowrap",
+              "press -mb-px border-b-2 px-3 py-2 text-sm whitespace-nowrap",
               tab === t ? "border-primary font-medium text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
             )}
           >
@@ -72,11 +74,13 @@ export function ClientPortal({ client, data, today, requests, messages }: Props)
       </div>
 
       {tab === "planning" && <Planning data={data} today={today} shifts={myShifts} locations={myLocations} onCoach={setProfile} />}
-      {tab === "aanvragen" && <Requests client={client} data={data} requests={requests} onCoach={setProfile} />}
+      {tab === "aanvragen" && <Requests client={client} data={data} today={today} requests={requests} onCoach={setProfile} />}
       {tab === "locaties" && <Locations client={client} data={data} today={today} />}
       {tab === "meldingen" &&
         (messages.length === 0 ? (
-          <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">Geen meldingen.</p>
+          <EmptyState icon={BellOff} title="Geen meldingen">
+            Verandert er op korte termijn iets aan een dienst bij jou, dan zie je dat hier.
+          </EmptyState>
         ) : (
           <ul className="space-y-2">{messages.map((m, i) => <MessageCard key={m.id} m={m} defaultOpen={i === 0} />)}</ul>
         ))}
@@ -157,7 +161,7 @@ function Planning({ data, today, shifts, locations, onCoach }: PlanningProps) {
       <div className="flex flex-wrap items-center gap-2">
         <div className="inline-flex rounded-lg border bg-muted p-0.5" role="tablist" aria-label="Weergave">
           {(["dag", "week", "maand"] as const).map((r) => (
-            <button key={r} role="tab" aria-selected={range === r} onClick={() => setRange(r)} className={cn("rounded-md px-3 py-1 text-sm capitalize", range === r ? "bg-background font-medium shadow-xs" : "text-muted-foreground")}>
+            <button key={r} role="tab" aria-selected={range === r} onClick={() => setRange(r)} className={cn("press rounded-md px-3 py-1 text-sm capitalize", range === r ? "bg-background font-medium shadow-xs" : "text-muted-foreground")}>
               {r}
             </button>
           ))}
@@ -439,7 +443,7 @@ function requestStatus(r: ShiftRequest, data: PlanData): { label: string; tone: 
   return { label: "Goedgekeurd, coach wordt gezocht", tone: "warn", coaches };
 }
 
-function Requests({ client, data, requests, onCoach }: { client: Client; data: PlanData; requests: ShiftRequest[]; onCoach: (e: Employee) => void }) {
+function Requests({ client, data, today, requests, onCoach }: { client: Client; data: PlanData; today: string; requests: ShiftRequest[]; onCoach: (e: Employee) => void }) {
   const active = data.locations.filter((l) => l.clientId === client.id && !l.archived);
   const [locationId, setLocationId] = useState(active[0]?.id ?? "");
   const [fn, setFn] = useState(() => defaultFunction(active[0]));
@@ -447,7 +451,7 @@ function Requests({ client, data, requests, onCoach }: { client: Client; data: P
   const [end, setEnd] = useState("18:00");
   const [activityId, setActivityId] = useState("");
   const [note, setNote] = useState("");
-  const [rec, setRec] = useState<RecurrenceState>(() => initialRecurrence("2026-10-26"));
+  const [rec, setRec] = useState<RecurrenceState>(() => initialRecurrence("2026-10-26", today));
   const [pending, startT] = useTransition();
   const locName = new Map(data.locations.map((l) => [l.id, l.name]));
   const dates = useMemo(() => expandRule(toRule(rec)), [rec]);
@@ -516,7 +520,7 @@ function Requests({ client, data, requests, onCoach }: { client: Client; data: P
                 ))}
               </NativeSelect>
             </div>
-            <RecurrenceInput value={rec} onChange={setRec} />
+            <RecurrenceInput value={rec} onChange={setRec} min={today} />
             <div className="grid gap-1.5">
               <Label htmlFor="r-note">Opmerking (optioneel)</Label>
               <Textarea id="r-note" rows={2} value={note} onChange={(e) => setNote(e.target.value)} />

@@ -1,6 +1,8 @@
 "use client";
 
+import { useOptimistic, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { ProgressBar } from "@/components/NavProgress";
 import { NativeSelect } from "@/components/ui/native-select";
 
 interface Props {
@@ -12,8 +14,11 @@ interface Props {
 export function RoleSwitcher({ employees, clients, fullWidth = false, onNavigate }: Props & { fullWidth?: boolean; onNavigate?: () => void }) {
   const router = useRouter();
   const pathname = usePathname();
+  const [pending, startTransition] = useTransition();
   const [, section, id] = pathname.split("/");
-  const value = section === "medewerker" || section === "opdrachtgever" ? `/${section}/${id}` : "/planbord";
+  const current = section === "medewerker" || section === "opdrachtgever" ? `/${section}/${id}` : "/planbord";
+  // Show the chosen view right away; the select would otherwise snap back until the new page has loaded.
+  const [value, setValue] = useOptimistic(current);
 
   return (
     <label className={fullWidth ? "grid text-sm" : "flex items-center gap-2 text-sm"}>
@@ -23,9 +28,14 @@ export function RoleSwitcher({ employees, clients, fullWidth = false, onNavigate
         value={value}
         onChange={(e) => {
           onNavigate?.();
-          router.push(e.target.value);
+          const href = e.target.value;
+          startTransition(() => {
+            setValue(href);
+            router.push(href);
+          });
         }}
         className={fullWidth ? "w-full" : "w-48"}
+        aria-busy={pending}
       >
         <option value="/planbord">Planner (Sanne)</option>
         <optgroup label="Medewerker">
@@ -43,6 +53,7 @@ export function RoleSwitcher({ employees, clients, fullWidth = false, onNavigate
           ))}
         </optgroup>
       </NativeSelect>
+      {pending && <ProgressBar />}
     </label>
   );
 }

@@ -66,3 +66,17 @@ Running notes on how AI (Claude Code) was used, what was decided, and what had t
   - Automatic bag choice now prefers a complete bag; covered by unit tests before the UI.
   - An end-to-end check broke because "Gemeld" now also appears in "gemeld 11 okt door Emma"; made the selector exact rather than loosening the test.
 - Tests now: 95 unit tests, 4 Playwright end-to-end tests (including the client calendar at phone width). Lint clean, build green.
+
+## 2026-10-11 (evening): design pass, loading, past dates, employee page
+
+- What I asked for: improve the design using three design-engineering skills (keep only what suits a planning tool used all day), no picking dates in the past, visible loading for slow actions plus skeletons, a 404 and an error page, a planner page per employee opened from the planbord, and a security scan with Aikido.
+- Choices: from the design skills I took motion and feedback rules (strong ease-out curves, a slight press on buttons, quick exits, reduced-motion support, tinted shadows, empty states that say what to do next). I left out decorative and endlessly looping animation, which would slow a work tool down.
+- Corrections and checks:
+  - The slow filters were not a missing spinner: every filter click went back to the server and reloaded the whole workspace, although filtering happens in the browser. Changed it to a URL update only; measured 19 ms and no server request.
+  - Past dates are blocked in every date picker and checked again on the server; an existing past shift may keep its date, but nothing can be moved into the past. Unit tests for the helper.
+  - The new `/medewerkers/[id]` page made the header treat it as the employee app (`startsWith("/medewerker")`), which showed up as a hydration error. Fixed the check.
+  - A label list was imported from a client component into a server page, where it would not be a plain object; moved it to a shared module.
+  - The employee id goes into a log query filter, so it is checked as a uuid first.
+  - A flaky end-to-end failure after the edits came from the dev server compiling routes and hot-reloading the open page; it passed on a warm server. Later end-to-end runs failed at login because Supabase limits anonymous sign-ins per hour, not because of the code; to check before the demo.
+  - Aikido scan of the 47 changed files: no issues.
+- Tests now: 100 unit tests, Playwright end-to-end tests updated (employee page step added). Lint clean, build green.

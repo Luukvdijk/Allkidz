@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useMemo } from "react";
+import Link from "next/link";
 import { ArrowDown, CalendarOff, Plus } from "lucide-react";
 import { cn } from "cn";
 import type { Shift } from "@/lib/types";
@@ -10,6 +11,8 @@ import { hoursLabel, totalMinutes } from "@/lib/hours";
 import { Button } from "@/components/ui/button";
 import { ShiftChip } from "./ShiftChip";
 import { usePlan } from "./PlanContext";
+import { EmptyState } from "@/components/EmptyState";
+import { SearchX } from "lucide-react";
 
 function GapStrip({ gap }: { gap: Gap }) {
   const need = gap.need ?? 0;
@@ -65,7 +68,11 @@ export function DayView({ visible, date }: { visible: Shift[]; date: string }) {
   }, [visible, date, data, byShift, employees]);
 
   if (open.length === 0 && rows.length === 0)
-    return <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">Geen diensten op {longDate(date)} met deze filters.</p>;
+    return (
+      <EmptyState icon={SearchX} title={`Geen diensten op ${longDate(date)}`}>
+        Niets gevonden met deze filters. Kies een andere dag hierboven, wis de zoekterm of maak met Nieuwe dienst iets aan.
+      </EmptyState>
+    );
 
   return (
     <div className="space-y-6">
@@ -97,13 +104,19 @@ export function DayView({ visible, date }: { visible: Shift[]; date: string }) {
                   aria-label={`Dag van ${emp.name}`}
                 >
                   <header className="mb-2 flex items-center gap-2">
-                    <span className="grid size-8 place-items-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
-                      {emp.name.slice(0, 1)}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="leading-tight font-semibold">{emp.name}</h3>
-                      <p className="text-xs text-muted-foreground">{emp.functions.join(", ")}</p>
-                    </div>
+                    <Link
+                      href={`/medewerkers/${id}`}
+                      className="group/emp -m-1 flex min-w-0 flex-1 items-center gap-2 rounded-lg p-1 hover:bg-muted/60"
+                      aria-label={`Profiel en overzicht van ${emp.name}`}
+                    >
+                      <span className="grid size-8 shrink-0 place-items-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
+                        {emp.name.slice(0, 1)}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="leading-tight font-semibold underline-offset-2 group-hover/emp:underline">{emp.name}</h3>
+                        <p className="text-xs text-muted-foreground">{emp.functions.join(", ")}</p>
+                      </div>
+                    </Link>
                     <span className="text-xs text-muted-foreground tabular-nums">
                       {timeline.shifts.length} {timeline.shifts.length === 1 ? "dienst" : "diensten"} ·{" "}
                       {hoursLabel(totalMinutes(timeline.shifts))}

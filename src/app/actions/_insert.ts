@@ -1,6 +1,7 @@
 import "server-only";
 import type { Supabase } from "@/lib/supabase/server";
 import { expandRule, describeRule, type RecurrenceRule } from "@/lib/recurrence";
+import { hasPastDate, PAST_DATE_ERROR } from "@/lib/time";
 import type { Actor } from "@/lib/data/actor";
 import { SHIFT_COLS, type ShiftRow } from "./_log";
 
@@ -37,7 +38,7 @@ export interface NewShiftInput {
 /** Shared by the planner form and request approval: validate, insert one shift per date (as a series), log each. */
 export async function insertShifts(
   sb: Supabase,
-  ws: { id: string },
+  ws: { id: string; today: string },
   input: NewShiftInput,
 ): Promise<{ ids: string[]; dates: string[] } | { error: string }> {
   const timeError = validTimes(input.start, input.end);
@@ -46,6 +47,7 @@ export async function insertShifts(
   if (dates.length === 0) return { error: "Kies minstens één datum." };
   if (dates.length > 200) return { error: "Maximaal 200 diensten tegelijk." };
   if (!dates.every((d) => DATE.test(d))) return { error: "Ongeldige datum." };
+  if (hasPastDate(dates, ws.today)) return { error: PAST_DATE_ERROR };
 
   let seriesId: string | null = null;
   if (dates.length > 1) {

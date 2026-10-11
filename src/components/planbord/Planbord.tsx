@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import type { PlanData, Shift } from "@/lib/types";
 import { applyFilters, parseFilters, toQuery, type Filters } from "@/lib/filters";
 import { addDays, mondayOf } from "@/lib/time";
@@ -25,7 +25,6 @@ function dateScope(f: Filters): [string, string] {
 }
 
 export function Planbord({ data, ws }: { data: PlanData; ws: Workspace }) {
-  const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
   const filters = useMemo(() => parseFilters(new URLSearchParams(params.toString())), [params]);
@@ -36,9 +35,11 @@ export function Planbord({ data, ws }: { data: PlanData; ws: Workspace }) {
   const set = useCallback(
     (patch: Partial<Filters>) => {
       const q = toQuery({ ...filters, ...patch });
-      router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+      // Filtering happens in the browser on data that is already loaded, so only the URL changes: no server
+      // round trip, the board updates instantly. Next keeps useSearchParams in sync with history.replaceState.
+      window.history.replaceState(null, "", q ? `${pathname}?${q}` : pathname);
     },
-    [filters, pathname, router],
+    [filters, pathname],
   );
 
   const conflictIds = useMemo(() => new Set(detectConflicts(data).flatMap((c) => c.shiftIds)), [data]);

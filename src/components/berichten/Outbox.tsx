@@ -8,6 +8,7 @@ import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { emailMessage } from "@/app/actions/messages";
+import { EmptyState } from "@/components/EmptyState";
 
 export interface Message {
   id: string;
@@ -80,10 +81,10 @@ export function MessageCard({ m, canEmail = false, defaultOpen = false }: { m: M
 export function Outbox({ messages }: { messages: Message[] }) {
   if (messages.length === 0)
     return (
-      <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-        Nog geen berichten. Haal op het <Link href="/planbord" className="text-primary hover:underline">planbord</Link> iemand van een dienst
+      <EmptyState icon={Mail} title="Nog geen berichten">
+        Haal op het <Link href="/planbord" className="text-primary hover:underline">planbord</Link> iemand van een dienst
         binnen 7 dagen (bijvoorbeeld vrijdag 23 oktober) en het bericht verschijnt hier.
-      </p>
+      </EmptyState>
     );
   return (
     <ul className="space-y-2">

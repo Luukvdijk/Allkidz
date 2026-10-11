@@ -14,6 +14,8 @@ import { approveRequest, rejectRequest } from "@/app/actions/requests";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { EmptyState } from "@/components/EmptyState";
+import { Inbox } from "lucide-react";
 
 const STATUS: Record<ShiftRequest["status"], string> = { aangevraagd: "Open", goedgekeurd: "Goedgekeurd", afgewezen: "Afgewezen" };
 const when = (iso: string) =>
@@ -63,7 +65,9 @@ export function RequestInbox({ requests, data }: { requests: ShiftRequest[]; dat
       <section>
         <h2 className="mb-2 text-sm font-semibold">Open aanvragen ({open.length})</h2>
         {open.length === 0 ? (
-          <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">Geen open aanvragen.</p>
+          <EmptyState icon={Inbox} title="Geen open aanvragen">
+            Aanvragen die opdrachtgevers in hun portaal doen, komen hier binnen om goed of af te keuren.
+          </EmptyState>
         ) : (
           <ul className="space-y-2">{open.map((r) => <RequestCard key={r.id} r={r} names={names} data={data} pending={pending} onApprove={approve} onReject={setRejecting} />)}</ul>
         )}

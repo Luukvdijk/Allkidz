@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import Link from "next/link";
+import { ChevronRight, Search } from "lucide-react";
 import type { PlanData } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { LicenceList, licenceStatus } from "@/components/profile/LicenceList";
@@ -29,8 +30,11 @@ export function EmployeesTable({ data, today }: { data: PlanData; today: string 
       </div>
       <ul className="divide-y rounded-xl border bg-card">
         {rows.map(({ e, lic }) => (
-          <li key={e.id} className="grid gap-1.5 px-4 py-3 sm:grid-cols-[10rem_12rem_1fr] sm:items-center">
-            <span className="font-medium">{e.name}</span>
+          <li key={e.id} className="relative grid gap-1.5 px-4 py-3 pr-10 hover:bg-muted/40 sm:grid-cols-[10rem_12rem_1fr] sm:items-center">
+            <Link href={`/medewerkers/${e.id}`} className="font-medium after:absolute after:inset-0 hover:underline">
+              {e.name}
+            </Link>
+            <ChevronRight className="absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
             <span className="text-sm text-muted-foreground">{e.functions.join(", ")}</span>
             <LicenceList licences={lic} today={today} />
           </li>

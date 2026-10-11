@@ -5,7 +5,8 @@ async function login(page: Page) {
   await page.getByLabel("E-mail").fill(process.env.DEMO_EMAIL!);
   await page.getByLabel("Wachtwoord").fill(process.env.DEMO_PASSWORD!);
   await page.getByRole("button", { name: "Inloggen" }).click();
-  await expect(page).toHaveURL(/planbord/);
+  // Logging in seeds a fresh copy of the demo data, which can take several seconds.
+  await expect(page).toHaveURL(/planbord/, { timeout: 30_000 });
 }
 
 async function viewAs(page: Page, label: string) {
