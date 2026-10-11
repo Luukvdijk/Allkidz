@@ -271,7 +271,7 @@ interface DayProps {
   onCoach: (e: Employee) => void;
 }
 
-/** One row per location with its shifts on a time axis. On a phone the same rows are a plain list. */
+/** One row per location with its shifts on a time axis. On a phone the same day is a vertical calendar instead. */
 function DayTimeline({ shifts, locations, emp, act, onCoach }: DayProps) {
   const { from, to } = hourRange(shifts);
   const span = (to - from) * 60;
@@ -287,8 +287,9 @@ function DayTimeline({ shifts, locations, emp, act, onCoach }: DayProps) {
         {shifts.length === 0 ? "Geen diensten op deze dag." : `${shifts.length} ${shifts.length === 1 ? "dienst" : "diensten"}, ${filled} gevuld`}
         {shifts.length > filled && <span className="font-medium text-warn-foreground">, {shifts.length - filled} nog open</span>}
       </p>
-      <div className="overflow-hidden rounded-xl border bg-card">
-        <div className="hidden border-b bg-muted/60 sm:grid sm:grid-cols-[13rem_1fr]">
+      <VerticalDay shifts={shifts} locations={locations} emp={emp} act={act} onCoach={onCoach} />
+      <div className="hidden overflow-hidden rounded-xl border bg-card sm:block">
+        <div className="grid grid-cols-[13rem_1fr] border-b bg-muted/60">
           <span className="px-3 py-1.5 text-xs font-medium text-muted-foreground">Locatie</span>
           <div className="relative h-7" aria-hidden>
             {hours.map((h) => (
@@ -304,8 +305,8 @@ function DayTimeline({ shifts, locations, emp, act, onCoach }: DayProps) {
             const { lanes, count } = assignLanes(list);
             const open = list.filter((s) => !s.employeeId).length;
             return (
-              <li key={l.id} className="sm:grid sm:grid-cols-[13rem_1fr]" aria-label={`${l.name}, ${list.length} ${list.length === 1 ? "dienst" : "diensten"}`}>
-                <div className="px-3 pt-2.5 sm:py-2.5">
+              <li key={l.id} className="grid grid-cols-[13rem_1fr]" aria-label={`${l.name}, ${list.length} ${list.length === 1 ? "dienst" : "diensten"}`}>
+                <div className="px-3 py-2.5">
                   <p className="text-sm font-medium">{l.name}</p>
                   <p className="text-xs text-muted-foreground">
                     {l.type} · {l.city}
@@ -313,25 +314,7 @@ function DayTimeline({ shifts, locations, emp, act, onCoach }: DayProps) {
                   </p>
                 </div>
 
-                {/* Phone: a list. */}
-                <ul className="space-y-1 px-3 pt-1 pb-2.5 sm:hidden">
-                  {list.length === 0 && <li className="text-xs text-muted-foreground">Geen diensten.</li>}
-                  {list.map((s) => (
-                    <li key={s.id} className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-                      <span className="font-medium tabular-nums">{s.start}-{s.end}</span>
-                      <span className="text-muted-foreground">
-                        {s.fn}
-                        {s.activityId && ` · ${act.get(s.activityId)}`}
-                      </span>
-                      <span className="ml-auto">
-                        <CoachPill coach={s.employeeId ? (emp.get(s.employeeId) ?? null) : null} onCoach={onCoach} />
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-
-                {/* Wider screens: bars on the time axis. */}
-                <div className="relative hidden border-l sm:block" style={{ height: `${Math.max(count, 1) * 2.5 + 1}rem` }}>
+                <div className="relative border-l" style={{ height: `${Math.max(count, 1) * 2.5 + 1}rem` }}>
                   {hours.map((h) => (
                     <span key={h} className="absolute inset-y-0 border-l border-dashed border-border/70" style={{ left: `${((h - from) / (to - from)) * 100}%` }} aria-hidden />
                   ))}
@@ -358,6 +341,88 @@ function DayTimeline({ shifts, locations, emp, act, onCoach }: DayProps) {
           })}
         </ul>
       </div>
+    </div>
+  );
+}
+
+const HOUR_PX = 56;
+const LANE_PX = 68;
+
+/**
+ * Phone version of the day: hours run down the left, one column per location with shifts,
+ * coaches working at the same time side by side. Wider than the screen means swipe sideways;
+ * the hour column stays put.
+ */
+function VerticalDay({ shifts, locations, emp, act, onCoach }: DayProps) {
+  const { from, to } = hourRange(shifts);
+  const hours = Array.from({ length: to - from }, (_, i) => from + i);
+  const top = (t: string) => ((toMin(t) - from * 60) / 60) * HOUR_PX;
+  const columns = locations
+    .map((l) => {
+      const list = shifts.filter((s) => s.locationId === l.id).sort((a, b) => toMin(a.start) - toMin(b.start));
+      return { l, list, ...assignLanes(list) };
+    })
+    .filter((c) => c.list.length > 0);
+  const empty = locations.filter((l) => !columns.some((c) => c.l.id === l.id));
+  const width = (count: number) => Math.max(count * LANE_PX, 128);
+  const wide = columns.reduce((w, c) => w + width(c.count), 0) > 300;
+
+  return (
+    <div className="space-y-2 sm:hidden">
+      {columns.length > 0 && (
+        <div className="overflow-x-auto rounded-xl border bg-card" role="group" aria-label="Dagkalender">
+          <div className="flex w-max min-w-full">
+            <div className="sticky left-0 z-10 w-11 shrink-0 border-r bg-card">
+              <div className="h-12 border-b" />
+              {hours.map((h) => (
+                <div key={h} className="relative border-b border-dashed border-border/70 text-[11px] text-muted-foreground tabular-nums" style={{ height: HOUR_PX }}>
+                  <span className="absolute top-0.5 left-1.5">{String(h).padStart(2, "0")}:00</span>
+                </div>
+              ))}
+            </div>
+            {columns.map(({ l, list, lanes, count }) => (
+              <section key={l.id} className="shrink-0 border-r last:border-r-0" style={{ width: width(count) }} aria-label={`${l.name}, ${list.length} ${list.length === 1 ? "dienst" : "diensten"}`}>
+                <header className="h-12 overflow-hidden border-b px-2 py-1.5">
+                  <p className="truncate text-xs font-semibold">{l.name}</p>
+                  <p className="truncate text-[11px] text-muted-foreground">{l.city}</p>
+                </header>
+                <div className="relative" style={{ height: hours.length * HOUR_PX }}>
+                  {hours.map((h, i) => (
+                    <span key={h} className="absolute inset-x-0 border-b border-dashed border-border/70" style={{ top: (i + 1) * HOUR_PX - 1 }} aria-hidden />
+                  ))}
+                  {list.map((s, i) => {
+                    const coach = s.employeeId ? emp.get(s.employeeId) : null;
+                    const laneW = 100 / Math.max(count, 1);
+                    const style = { top: top(s.start) + 1, height: top(s.end) - top(s.start) - 2, left: `calc(${lanes[i] * laneW}% + 2px)`, width: `calc(${laneW}% - 4px)` };
+                    const body = (
+                      <>
+                        <span className="block font-semibold">{coach ? coach.name : "Nog open"}</span>
+                        <span className="block text-[10px] whitespace-nowrap tabular-nums opacity-80">{s.start}-{s.end}</span>
+                        <span className="block truncate opacity-80">{s.activityId ? act.get(s.activityId) : s.fn}</span>
+                      </>
+                    );
+                    const cls = "absolute overflow-hidden rounded-md border px-1.5 py-1 text-left text-[11px] leading-tight";
+                    const detail = `${s.start}-${s.end} · ${coach ? coach.name : "nog niet gevuld"} · ${s.fn}`;
+                    return coach ? (
+                      <button key={s.id} type="button" title={detail} onClick={() => onCoach(coach)} style={style} className={cn(cls, "border-ok/40 bg-ok/15 text-ok")}>
+                        {body}
+                      </button>
+                    ) : (
+                      <div key={s.id} title={detail} style={style} className={cn(cls, "border-dashed border-warn bg-warn/20 text-warn-foreground")}>
+                        {body}
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
+          </div>
+        </div>
+      )}
+      {wide && <p className="text-center text-xs text-muted-foreground">Veeg opzij voor meer locaties</p>}
+      {empty.length > 0 && columns.length > 0 && (
+        <p className="text-xs text-muted-foreground">Geen diensten bij: {empty.map((l) => l.name).join(", ")}.</p>
+      )}
     </div>
   );
 }

@@ -92,3 +92,14 @@ test("employee sees the bag and reports a missing item, planner sees it on the b
   await expect(page.getByText("“Fluitje kwijt”")).toBeVisible();
   await expect(page.getByText("Dubbel: twee coaches")).toBeVisible();
 });
+
+test("on a phone the client sees the day as a vertical calendar and can open a coach", async ({ page }) => {
+  await login(page);
+  await page.setViewportSize({ width: 375, height: 812 });
+  await viewAs(page, "Kinderopvang Duinstreek");
+  const calendar = page.getByRole("group", { name: "Dagkalender" });
+  await expect(calendar).toBeVisible();
+  await expect(calendar.getByRole("region", { name: /^BSO De Duinroos, \d+ diensten/ })).toBeVisible();
+  await calendar.getByRole("button").first().click();
+  await expect(page.getByRole("dialog").getByText(/BSN deelt AllKidz niet/)).toBeVisible();
+});
