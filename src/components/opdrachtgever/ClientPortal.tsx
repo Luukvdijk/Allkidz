@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 import { Archive, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "cn";
@@ -21,8 +22,8 @@ import { MessageCard, type Message } from "@/components/berichten/Outbox";
 import { LicenceList } from "@/components/profile/LicenceList";
 import { RecurrenceInput, initialRecurrence, toRule, type RecurrenceState } from "@/components/shift/RecurrenceInput";
 import { defaultFunction } from "@/components/shift/ShiftSheet";
+import { CLIENT_TABS, clientTabFrom, goToClientTab, type ClientTab } from "./tabs";
 
-type Tab = "planning" | "aanvragen" | "locaties" | "meldingen";
 const FUNCTIONS = ["KidzCoach", "Toezichthouder", "Aqualessen", "Zwemonderwijzer", "Gymdocent"];
 const TYPES = ["BSO", "KDV", "TSO", "Zwembad", "School"];
 
@@ -35,36 +36,37 @@ interface Props {
 }
 
 export function ClientPortal({ client, data, today, requests, messages }: Props) {
-  const [tab, setTab] = useState<Tab>("planning");
+  const tab = clientTabFrom(useSearchParams().get("tab"));
   const [profile, setProfile] = useState<Employee | null>(null);
   const myLocations = data.locations.filter((l) => l.clientId === client.id);
   const myIds = new Set(myLocations.map((l) => l.id));
   const myShifts = data.shifts.filter((s) => s.status === "active" && myIds.has(s.locationId));
   const openRequests = requests.filter((r) => r.status === "aangevraagd").length;
 
-  const tabs: { t: Tab; label: string; count?: number }[] = [
-    { t: "planning", label: "Planning" },
-    { t: "aanvragen", label: "Aanvragen", count: openRequests },
-    { t: "locaties", label: "Locaties", count: myLocations.filter((l) => !l.archived).length },
-    { t: "meldingen", label: "Meldingen", count: messages.length },
-  ];
+  const counts: Partial<Record<ClientTab, number>> = {
+    aanvragen: openRequests,
+    locaties: myLocations.filter((l) => !l.archived).length,
+    meldingen: messages.length,
+  };
 
   return (
     <div className="space-y-4">
-      <div className="-mx-4 flex gap-1 overflow-x-auto border-b px-4 sm:mx-0 sm:px-0" role="tablist">
-        {tabs.map(({ t, label, count }) => (
+      {/* On a phone the sections live in the header menu; the current one is the heading here. */}
+      <h2 className="text-lg font-semibold sm:hidden">{CLIENT_TABS.find((x) => x.t === tab)?.label}</h2>
+      <div className="hidden gap-1 border-b sm:flex" role="tablist">
+        {CLIENT_TABS.map(({ t, label }) => (
           <button
             key={t}
             role="tab"
             aria-selected={tab === t}
-            onClick={() => setTab(t)}
+            onClick={() => goToClientTab(t)}
             className={cn(
               "-mb-px border-b-2 px-3 py-2 text-sm whitespace-nowrap",
               tab === t ? "border-primary font-medium text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
             )}
           >
             {label}
-            {count ? <span className="ml-1.5 rounded-full bg-muted px-1.5 text-xs">{count}</span> : null}
+            {counts[t] ? <span className="ml-1.5 rounded-full bg-muted px-1.5 text-xs">{counts[t]}</span> : null}
           </button>
         ))}
       </div>

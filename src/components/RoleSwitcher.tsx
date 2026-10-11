@@ -17,7 +17,7 @@ export function RoleSwitcher({ employees, clients, fullWidth = false, onNavigate
 
   return (
     <label className={fullWidth ? "grid text-sm" : "flex items-center gap-2 text-sm"}>
-      {!fullWidth && <span className="hidden text-muted-foreground sm:inline">Bekijk als</span>}
+      {!fullWidth && <span className="hidden text-muted-foreground 2xl:inline">Bekijk als</span>}
       <NativeSelect
         aria-label="Bekijk als"
         value={value}
@@ -25,7 +25,7 @@ export function RoleSwitcher({ employees, clients, fullWidth = false, onNavigate
           onNavigate?.();
           router.push(e.target.value);
         }}
-        className={fullWidth ? "w-full" : "w-48 sm:w-56"}
+        className={fullWidth ? "w-full" : "w-48"}
       >
         <option value="/planbord">Planner (Sanne)</option>
         <optgroup label="Medewerker">
