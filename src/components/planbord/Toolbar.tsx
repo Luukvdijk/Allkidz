@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { AlertTriangle, ChevronLeft, ChevronRight, CircleDashed, Plus, Search, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { AlertTriangle, CircleDashed, Plus, Search, X } from "lucide-react";
+import { DateStepper } from "@/components/DateStepper";
 import { cn } from "cn";
 import type { Shift } from "@/lib/types";
 import { hasActiveFilters, type Filters, type View } from "@/lib/filters";
@@ -48,6 +49,22 @@ export function Toolbar({ filters, set, scoped, visible }: Props) {
 
   const monday = mondayOf(filters.date);
   const week = Array.from({ length: 5 }, (_, i) => addDays(monday, i));
+
+  // Phone: the weekday strip shows three whole days and swipes; keep the chosen day in view.
+  const strip = useRef<HTMLDivElement>(null);
+  const firstScroll = useRef(true);
+  useEffect(() => {
+    const el = strip.current;
+    const active = el?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!el || !active || el.scrollWidth <= el.clientWidth) return;
+    const pad = parseFloat(getComputedStyle(el).paddingLeft) || 0;
+    const left = active.offsetLeft - el.offsetLeft - pad;
+    const right = left + active.offsetWidth;
+    if (left >= el.scrollLeft && right <= el.scrollLeft + el.clientWidth - 2 * pad) return;
+    const smooth = !firstScroll.current && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollTo({ left, behavior: smooth ? "smooth" : "auto" });
+    firstScroll.current = false;
+  }, [filters.date, filters.view]);
   const title =
     filters.view === "dag" ? longDate(filters.date)
     : filters.view === "maand" ? monthLabel(filters.date)
@@ -80,15 +97,9 @@ export function Toolbar({ filters, set, scoped, visible }: Props) {
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-1">
-          <Button variant="outline" size="icon-sm" aria-label="Vorige" onClick={() => step(-1)}>
-            <ChevronLeft />
-          </Button>
-          <Button variant="outline" size="icon-sm" aria-label="Volgende" onClick={() => step(1)}>
-            <ChevronRight />
-          </Button>
-        </div>
-        <h1 className="text-lg font-semibold tracking-tight first-letter:uppercase">{title}</h1>
+        <DateStepper unit={filters.view === "dag" ? "dag" : filters.view === "maand" ? "maand" : "week"} onStep={step} titleClassName="sm:min-w-52">
+          <h1 className="text-lg font-semibold tracking-tight first-letter:uppercase">{title}</h1>
+        </DateStepper>
         <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto">
           <Button
             variant={filters.onlyConflicts ? "destructive" : "outline"}
@@ -114,7 +125,12 @@ export function Toolbar({ filters, set, scoped, visible }: Props) {
       </div>
 
       {(filters.view === "dag" || filters.view === "lijst") && (
-        <div className="-mx-4 flex gap-1 overflow-x-auto px-4 pb-0.5 sm:mx-0 sm:px-0" role="tablist" aria-label="Dag van de week">
+        <div
+          ref={strip}
+          className="grid snap-x snap-mandatory auto-cols-[calc((100%-0.5rem)/3)] grid-flow-col gap-1 overflow-x-auto overscroll-x-contain [scrollbar-width:none] sm:flex sm:overflow-visible [&::-webkit-scrollbar]:hidden"
+          role="tablist"
+          aria-label="Dag van de week"
+        >
           {week.map((d) => {
             const day = visible.filter((s) => s.date === d);
             const c = day.filter((s) => byShift.has(s.id)).length;
@@ -127,7 +143,7 @@ export function Toolbar({ filters, set, scoped, visible }: Props) {
                 aria-selected={active}
                 onClick={() => set({ date: d, view: "dag" })}
                 className={cn(
-                  "min-w-24 flex-1 shrink-0 rounded-lg border px-2.5 py-1.5 text-left press sm:min-w-28 sm:px-3",
+                  "min-w-0 snap-start rounded-lg border px-2.5 py-1.5 text-left press sm:min-w-28 sm:flex-1 sm:px-3",
                   active ? "border-primary bg-accent" : "bg-card hover:bg-muted",
                 )}
               >

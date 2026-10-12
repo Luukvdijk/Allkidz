@@ -152,9 +152,7 @@ export function LogTimeline({ entries, cancelled, employeeNames, locationNames }
 
       {tab === "cancelled" ? (
         cancelled.length === 0 ? (
-          <EmptyState icon={History} title="Nog geen geannuleerde diensten">
-            Annuleer je een dienst op het planbord, dan staat hij hier met de reden erbij.
-          </EmptyState>
+          <EmptyState icon={History} title="Nog geen geannuleerde diensten" />
         ) : (
           <ul className="divide-y rounded-xl border bg-card">
             {cancelled.map((c) => (
@@ -194,9 +192,7 @@ export function LogTimeline({ entries, cancelled, employeeNames, locationNames }
           </div>
 
           {groups.length === 0 && (
-            <EmptyState icon={History} title={entries.length === 0 ? "Nog geen wijzigingen" : "Geen wijzigingen met deze filters"}>
-              {entries.length === 0 ? "Alles wat je op het planbord of in de medewerker-app doet, komt hier te staan." : "Pas de filters aan om meer te zien."}
-            </EmptyState>
+            <EmptyState icon={History} title={entries.length === 0 ? "Nog geen wijzigingen" : "Geen wijzigingen met deze filters"} />
           )}
 
           {groups.map(([d, list]) => (

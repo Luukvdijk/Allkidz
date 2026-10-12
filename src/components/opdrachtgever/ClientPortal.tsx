@@ -2,7 +2,8 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
-import { Archive, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { Archive, Plus } from "lucide-react";
+import { DateStepper } from "@/components/DateStepper";
 import { toast } from "sonner";
 import { cn } from "cn";
 import type { Client, Employee, PlanData, Shift } from "@/lib/types";
@@ -78,9 +79,7 @@ export function ClientPortal({ client, data, today, requests, messages }: Props)
       {tab === "locaties" && <Locations client={client} data={data} today={today} />}
       {tab === "meldingen" &&
         (messages.length === 0 ? (
-          <EmptyState icon={BellOff} title="Geen meldingen">
-            Verandert er op korte termijn iets aan een dienst bij jou, dan zie je dat hier.
-          </EmptyState>
+          <EmptyState icon={BellOff} title="Geen meldingen" />
         ) : (
           <ul className="space-y-2">{messages.map((m, i) => <MessageCard key={m.id} m={m} defaultOpen={i === 0} />)}</ul>
         ))}
@@ -166,13 +165,9 @@ function Planning({ data, today, shifts, locations, onCoach }: PlanningProps) {
             </button>
           ))}
         </div>
-        <Button variant="outline" size="icon-sm" aria-label="Vorige" onClick={() => step(-1)}>
-          <ChevronLeft />
-        </Button>
-        <Button variant="outline" size="icon-sm" aria-label="Volgende" onClick={() => step(1)}>
-          <ChevronRight />
-        </Button>
-        <span className="font-semibold first-letter:uppercase">{title}</span>
+        <DateStepper unit={range} onStep={step}>
+          <span className="font-semibold first-letter:uppercase">{title}</span>
+        </DateStepper>
         <NativeSelect aria-label="Locatie" value={locFilter} onChange={(e) => setLocFilter(e.target.value)} className="w-full sm:ml-auto sm:w-56">
           <option value="">Alle locaties</option>
           {locations.map((l) => (
@@ -423,7 +418,6 @@ function VerticalDay({ shifts, locations, emp, act, onCoach }: DayProps) {
           </div>
         </div>
       )}
-      {wide && <p className="text-center text-xs text-muted-foreground">Veeg opzij voor meer locaties</p>}
       {empty.length > 0 && columns.length > 0 && (
         <p className="text-xs text-muted-foreground">Geen diensten bij: {empty.map((l) => l.name).join(", ")}.</p>
       )}

@@ -26,3 +26,12 @@ it("suggests nobody for a function nobody free has", () => {
   const gym = data.shifts.find((s) => s.id === "D006")!; // open Gymdocent Fri 13:00-15:00
   for (const c of rankCandidates(data, gym)) expect(data.employees.find((e) => e.id === c.employeeId)!.functions).toContain("Gymdocent");
 });
+
+it("suggests a replacement for a shift that has a conflict, never the current employee", () => {
+  const d105 = data.shifts.find((s) => s.id === "D105")!; // Tom, Mon 08:00-12:00, overlaps his D176
+  expect(d105.employeeId).toBe("Tom");
+  const r = rankCandidates(data, d105);
+  expect(r.length).toBeGreaterThan(0);
+  expect(r.map((c) => c.employeeId)).not.toContain("Tom");
+  for (const c of r) expect(conflictsIfAssigned(data, d105, c.employeeId)).toEqual([]);
+});

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { bagDoubles, missingFor, pickBag } from "@/lib/bags";
+import { bagDay, bagDoubles, bagMonth, missingFor, pickBag } from "@/lib/bags";
 import type { PlanData, Shift } from "@/lib/types";
 
 let n = 0;
@@ -64,5 +64,41 @@ describe("missing items", () => {
   it("pickBag still takes the incomplete bag when it is the only free one", () => {
     const d = withMissing([s({ employeeId: "lisa", bagId: "jacht2" })]);
     expect(pickBag("jacht", "2026-10-20", "anouk", d)).toBe("jacht1");
+  });
+});
+
+describe("bagDay", () => {
+  it("lists every bag, with its shifts in time order and how long each coach has it", () => {
+    const day = bagDay(
+      data([s({ id: "late", start: "14:45", end: "18:00" }), s({ id: "early", start: "07:30", end: "08:45" }), s({ id: "other", date: "2026-10-21" })]),
+      "2026-10-20",
+    );
+    expect(day.map((d) => d.bagId)).toEqual(["jacht1", "jacht2"]);
+    expect(day[0].shifts.map((x) => x.id)).toEqual(["early", "late"]);
+    // The bag goes home with the coach, so it is out from the first shift to the last.
+    expect(day[0].spans).toEqual([{ employeeId: "emma", from: "07:30", to: "18:00" }]);
+    expect(day[0].double).toBe(false);
+    expect(day[1]).toMatchObject({ shifts: [], spans: [], double: false });
+  });
+  it("marks a double and gives each coach a span", () => {
+    const [one] = bagDay(data([s({ employeeId: "emma" }), s({ employeeId: "anouk", start: "12:00", end: "13:15" })]), "2026-10-20");
+    expect(one.double).toBe(true);
+    expect(one.spans.map((x) => x.employeeId).sort()).toEqual(["anouk", "emma"]);
+  });
+  it("shows an open shift with a bag, but gives it no coach span", () => {
+    const [one] = bagDay(data([s({ employeeId: null })]), "2026-10-20");
+    expect(one.shifts).toHaveLength(1);
+    expect(one.spans).toEqual([]);
+  });
+});
+
+describe("bagMonth", () => {
+  it("counts bags in use and doubles per day", () => {
+    const m = bagMonth(
+      [s({}), s({ employeeId: "anouk" }), s({ bagId: "jacht2", date: "2026-10-21" }), s({ date: "2026-10-22", status: "cancelled" })],
+    );
+    expect(m.get("2026-10-20")).toEqual({ inUse: 1, doubles: 1 });
+    expect(m.get("2026-10-21")).toEqual({ inUse: 1, doubles: 0 });
+    expect(m.get("2026-10-22")).toBeUndefined();
   });
 });

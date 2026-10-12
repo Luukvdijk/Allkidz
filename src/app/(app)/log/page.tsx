@@ -36,9 +36,6 @@ export default function LogPage() {
     <main className="mx-auto max-w-4xl space-y-4 px-4 py-6">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Wijzigingslog</h1>
-        <p className="text-sm text-muted-foreground">
-          Wie wat wanneer veranderde, en waarom. Het log kan niet worden aangepast of verwijderd, ook niet door de planner.
-        </p>
       </div>
       <Suspense fallback={<PageSkeleton rows={4} />}>
         <LogData />

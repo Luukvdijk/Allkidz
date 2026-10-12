@@ -24,6 +24,7 @@ import { CLIENT_TABS, clientTabFrom, goToClientTab } from "@/components/opdracht
 import { LinkPending } from "@/components/NavProgress";
 
 const NAV = [
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/planbord", label: "Planbord" },
   { href: "/aanvragen", label: "Aanvragen" },
   { href: "/tassen", label: "Tassen" },
@@ -59,7 +60,7 @@ export function AppHeader({ employees, clients, messageCount, requestCount }: Pr
     });
 
   return (
-    <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
+    <header className="sticky top-0 z-30 overflow-x-clip border-b bg-background/95 backdrop-blur">
       <div ref={rowRef} className="relative mx-auto flex max-w-[1600px] items-center gap-x-4 px-4 py-2.5">
         <Link ref={logoRef} href="/planbord" className="flex shrink-0 items-center gap-2 font-semibold tracking-tight">
           <BrandMark />

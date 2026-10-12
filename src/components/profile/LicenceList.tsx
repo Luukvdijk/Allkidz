@@ -1,15 +1,9 @@
 import { cn } from "cn";
 import type { Licence } from "@/lib/types";
-import { dayMonth, daysBetween } from "@/lib/time";
+import { dayMonth } from "@/lib/time";
+import { licenceStatus } from "@/lib/licences";
 
-export type LicenceStatus = "ok" | "soon" | "expired";
-
-/** Expired before today: red. Expires within 30 days: orange. Otherwise (or no expiry): fine. */
-export function licenceStatus(l: Licence, today: string): LicenceStatus {
-  if (l.expiresOn === null) return "ok";
-  if (l.expiresOn < today) return "expired";
-  return daysBetween(today, l.expiresOn) <= 30 ? "soon" : "ok";
-}
+export { licenceStatus, type LicenceStatus } from "@/lib/licences";
 
 const ORDER = ["VOG", "EHBO", "Kinder-EHBO", "BHV", "Toezicht zwembad"];
 

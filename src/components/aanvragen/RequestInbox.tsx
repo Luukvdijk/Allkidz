@@ -65,9 +65,7 @@ export function RequestInbox({ requests, data }: { requests: ShiftRequest[]; dat
       <section>
         <h2 className="mb-2 text-sm font-semibold">Open aanvragen ({open.length})</h2>
         {open.length === 0 ? (
-          <EmptyState icon={Inbox} title="Geen open aanvragen">
-            Aanvragen die opdrachtgevers in hun portaal doen, komen hier binnen om goed of af te keuren.
-          </EmptyState>
+          <EmptyState icon={Inbox} title="Geen open aanvragen" />
         ) : (
           <ul className="space-y-2">{open.map((r) => <RequestCard key={r.id} r={r} names={names} data={data} pending={pending} onApprove={approve} onReject={setRejecting} />)}</ul>
         )}

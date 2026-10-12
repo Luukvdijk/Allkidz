@@ -13,11 +13,12 @@ export interface Candidate {
 /**
  * Who can take an open shift: right function, available, no overlap and enough travel time
  * (the same conflict engine as everywhere else). Fewest planned hours that week first, to spread the work.
+ * Also used to fix a conflict: for a shift that already has someone, it suggests who could take it over.
  */
 export function rankCandidates(data: PlanData, shift: Shift): Candidate[] {
   const week = mondayOf(shift.date);
   return data.employees
-    .filter((e) => e.functions.includes(shift.fn))
+    .filter((e) => e.id !== shift.employeeId && e.functions.includes(shift.fn))
     .filter((e) => conflictsIfAssigned(data, shift, e.id).length === 0)
     .map((e) => {
       const mine = data.shifts.filter((s) => s.employeeId === e.id && s.status === "active");

@@ -118,9 +118,7 @@ export function EmployeeOverview({ employee, data, stats, today, log }: Props) {
           <Section title={`Komende diensten (${stats.upcoming.length})`}>
             {stats.upcoming.length === 0 ? (
               <EmptyState icon={CalendarOff} title="Geen diensten gepland">
-                {stats.matchingOpen > 0
-                  ? `Er ${stats.matchingOpen === 1 ? "staat 1 open dienst" : `staan ${stats.matchingOpen} open diensten`} die bij ${employee.name} past. Plan die in vanaf het planbord.`
-                  : `Plan ${employee.name} in vanaf het planbord.`}
+                {stats.matchingOpen > 0 && `${stats.matchingOpen} open ${stats.matchingOpen === 1 ? "dienst past" : "diensten passen"} bij ${employee.name}.`}
               </EmptyState>
             ) : (
               <ul className="divide-y rounded-xl border bg-card">

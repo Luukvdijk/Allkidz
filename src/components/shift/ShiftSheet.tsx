@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { NativeSelect } from "@/components/ui/native-select";
-import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ConflictLine } from "@/components/planbord/ConflictBadge";
 import { usePlan } from "@/components/planbord/PlanContext";
 import { RecurrenceInput, initialRecurrence, toRule, type RecurrenceState } from "./RecurrenceInput";
@@ -136,9 +136,6 @@ function ShiftForm({ state, onClose, onCreated }: { state: SheetState; onClose: 
     <>
       <SheetHeader className="border-b">
         <SheetTitle>{edit ? `Dienst ${edit.code} bewerken` : "Nieuwe dienst"}</SheetTitle>
-        <SheetDescription>
-          {edit ? "Wijzigingen worden vastgelegd in het wijzigingslog." : "Conflicten zie je hieronder al voordat je opslaat."}
-        </SheetDescription>
       </SheetHeader>
 
       <div className="space-y-4 p-4">
@@ -232,7 +229,7 @@ function ShiftForm({ state, onClose, onCreated }: { state: SheetState; onClose: 
                 bagId={b}
                 data={data}
                 className="col-span-2"
-                hint={bagChoice === AUTO ? "Er is geen complete tas vrij. Vul de tas aan of laat de coach het zelf meenemen." : "Kies een andere tas of zorg dat het aangevuld is."}
+                hint={bagChoice === AUTO ? "Er is geen complete tas vrij." : undefined}
               />
             ))}
         </div>
@@ -282,7 +279,7 @@ function ShiftForm({ state, onClose, onCreated }: { state: SheetState; onClose: 
           {!timesValid ? (
             <p className="text-sm text-destructive">De eindtijd moet na de begintijd liggen.</p>
           ) : !employeeId ? (
-            <p className="text-sm text-muted-foreground">Open dienst: er wordt niemand gecontroleerd. Medewerkers met de functie {fn} zien hem in hun app.</p>
+            <p className="text-sm text-muted-foreground">Open dienst, nog niemand gekozen.</p>
           ) : (
             <ul className="max-h-56 space-y-1 overflow-y-auto">
               {preview.map((p) => (

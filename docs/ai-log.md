@@ -80,3 +80,16 @@ Running notes on how AI (Claude Code) was used, what was decided, and what had t
   - A flaky end-to-end failure after the edits came from the dev server compiling routes and hot-reloading the open page; it passed on a warm server. Later end-to-end runs failed at login because Supabase limits anonymous sign-ins per hour, not because of the code; to check before the demo.
   - Aikido scan of the 47 changed files: no issues.
 - Tests now: 100 unit tests, Playwright end-to-end tests updated (employee page step added). Lint clean, build green.
+
+## 2026-10-12: planbord, bags and dashboard
+
+- What I asked for: a Conflicten section on the day view with a suggested fix, collapsible sections, a swipeable weekday strip on phones, no explanatory filler texts, the date arrows around the date, day/week/month views and a timeline for the bags, and a dashboard with everything at a glance.
+- Corrections and checks:
+  - The "Alleen conflicten" toggle said 6 while the new section said 4: one counted shifts, the other conflicts (an overlap is one conflict with two shifts). Made both count shifts, and did the same on the dashboard.
+  - A conflict fix reuses the suggestion engine. Added a test that it never suggests the current employee, and the hand-over only succeeds while the shift still belongs to that employee, so it cannot overwrite someone else's change.
+  - The hidden copy of the menu that the header measures made the whole page scrollable sideways on phones (older bug, found while checking the day strip). Clipped the header.
+  - A bag stays with the coach all day, so the bag timeline shows the span from first to last shift, not only the shifts. Covered by tests before the UI.
+  - The dashboard first linked to today's week, which had no shifts or conflicts. Links now open the week of the first conflict or open shift, and the bag number opens the day of the first double.
+  - The new dashboard page hit a Next.js prerender error (the Supabase client was created before the page was marked as request-time). Fixed with an explicit `connection()`.
+  - An intermittent end-to-end failure (a client request saved with the wrong location) turned out to be the dev server: a first-time page compile in one parallel test hot-reloads the other test's page and resets its form. Proved it by running the same tests in parallel against a production build: all passed twice.
+- Tests now: 112 unit tests, 4 Playwright end-to-end tests (dashboard, conflict hand-over and bag views included). Lint clean, build green.

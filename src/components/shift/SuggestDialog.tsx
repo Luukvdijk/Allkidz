@@ -23,7 +23,9 @@ export function SuggestDialog({ shift, onClose }: { shift: Shift | null; onClose
 }
 
 function Suggestions({ shift, onClose }: { shift: Shift; onClose: () => void }) {
-  const { data, locations } = usePlan();
+  const { data, locations, employees } = usePlan();
+  // A shift that already has someone is a conflict fix: the new person takes it over.
+  const current = shift.employeeId ? employees.get(shift.employeeId) : undefined;
   const [pending, start] = useTransition();
   const candidates = useMemo(() => rankCandidates(data, shift), [data, shift]);
   const loc = locations.get(shift.locationId)!;
@@ -38,12 +40,12 @@ function Suggestions({ shift, onClose }: { shift: Shift; onClose: () => void }) 
 
   const plan = (employeeId: string, name: string) =>
     start(async () => {
-      const r = await assignEmployee(shift.id, employeeId, PLANNER);
+      const r = await assignEmployee(shift.id, employeeId, PLANNER, shift.employeeId ?? undefined);
       if ("error" in r) {
         toast.error(r.error);
         return;
       }
-      toast.success(`${name} staat op ${shift.code}`, { description: r.notified ? `${loc.name} krijgt automatisch bericht.` : undefined });
+      toast.success(current ? `${name} neemt ${shift.code} over van ${current.name}` : `${name} staat op ${shift.code}`, { description: r.notified ? `${loc.name} krijgt automatisch bericht.` : undefined });
       onClose();
     });
 
@@ -51,15 +53,14 @@ function Suggestions({ shift, onClose }: { shift: Shift; onClose: () => void }) 
     <>
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
-          <Sparkles className="size-4 text-primary" aria-hidden /> Wie kan {shift.code} doen?
+          <Sparkles className="size-4 text-primary" aria-hidden /> {current ? `Wie kan ${shift.code} overnemen van ${current.name}?` : `Wie kan ${shift.code} doen?`}
         </DialogTitle>
         <DialogDescription>
-          <span className="first-letter:uppercase">{shortDate(shift.date)}</span> {shift.start}-{shift.end}, {loc.name}, {shift.fn}. Alleen medewerkers met
-          deze functie{required.length > 0 ? ` en geldige ${required.join(", ")}` : ""} die beschikbaar zijn, niet overlappen en genoeg reistijd hebben. Minste uren deze week eerst.
+          <span className="first-letter:uppercase">{shortDate(shift.date)}</span> {shift.start}-{shift.end}, {loc.name}, {shift.fn}.
         </DialogDescription>
       </DialogHeader>
       {candidates.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">Niemand past zonder conflict. Tijd om te bellen.</p>
+        <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">Niemand past zonder conflict.</p>
       ) : (
         <ol className="divide-y rounded-lg border">
           {candidates.slice(0, 6).map((c, i) => (
@@ -73,7 +74,7 @@ function Suggestions({ shift, onClose }: { shift: Shift; onClose: () => void }) 
                 {required.length > 0 && <span className="block text-xs text-ok">{licenceLine(c.employeeId)}</span>}
               </span>
               <Button size="sm" variant={i === 0 ? "default" : "outline"} disabled={pending} onClick={() => plan(c.employeeId, c.name)}>
-                Inplannen
+                {current ? "Overnemen" : "Inplannen"}
               </Button>
             </li>
           ))}
