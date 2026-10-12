@@ -19,7 +19,6 @@ export function NotFoundContent() {
       }
     >
       <p>De link klopt niet, of de medewerker of opdrachtgever is na een reset van de demo niet meer dezelfde.</p>
-      <p>Kies via het planbord opnieuw wie je wilt bekijken.</p>
     </StatusPage>
   );
 }

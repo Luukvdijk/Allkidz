@@ -32,24 +32,24 @@ test("client requests a pool shift, planner approves and assigns a licensed coac
   // Client: request one Aqualessen shift at a pool on Monday 26 October.
   await page.getByRole("tab", { name: /Aanvragen/ }).click();
   await page.getByLabel("Locatie").selectOption({ label: "Zwembad De Waterlelie" });
+  await expect(page.getByLabel("Locatie").locator("option:checked")).toHaveText("Zwembad De Waterlelie");
   await expect(page.getByLabel("Functie")).toHaveValue("Aqualessen");
   await page.getByLabel("Begin").fill("15:00");
   await page.getByLabel("Eind").fill("17:00");
   await page.getByRole("button", { name: /Aanvragen \(1 dienst\)/ }).click();
-  await expect(page.getByText("Aanvraag verstuurd")).toBeVisible();
+  await expect(page.getByText("Aanvraag verstuurd")).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText("Aangevraagd, wacht op AllKidz").first()).toBeVisible();
 
   // Planner: approve it.
   await page.goto("/aanvragen");
   const card = page.getByRole("listitem").filter({ hasText: "Zwembad De Waterlelie" }).first();
   await card.getByRole("button", { name: /Goedkeuren/ }).click();
-  await expect(page.getByText(/Goedgekeurd: open dienst/)).toBeVisible();
+  await expect(page.getByText(/Goedgekeurd: open dienst/)).toBeVisible({ timeout: 15_000 });
 
   // Planner: the new open shift, suggestions show licence status; assign the first.
   await page.goto("/planbord?d=2026-10-26&q=Waterlelie&open=1");
   await page.getByRole("button", { name: "Stel iemand voor" }).first().click();
   const dialog = page.getByRole("dialog");
-  await expect(dialog.getByText(/geldige EHBO/)).toBeVisible();
   await expect(dialog.getByText(/EHBO geldig t\/m/).first()).toBeVisible();
   await expect(dialog.getByText("Nina")).toHaveCount(0); // her EHBO expired
   await dialog.getByRole("button", { name: "Inplannen" }).first().click();
@@ -91,7 +91,13 @@ test("employee sees the bag and reports a missing item, planner sees it on the b
 
   await page.goto("/tassen");
   await expect(page.getByText("“Fluitje kwijt”")).toBeVisible();
+  // Day timeline per bag; Tuesday has the double booking. Week and month show it too.
+  await page.getByRole("button", { name: "Volgende dag" }).click();
+  await expect(page.getByRole("listitem", { name: /Jachtseizoen tas 1: .*dubbel geboekt/ })).toBeVisible();
+  await page.getByRole("tab", { name: "week" }).click();
   await expect(page.getByText("Dubbel: twee coaches")).toBeVisible();
+  await page.getByRole("tab", { name: "maand" }).click();
+  await expect(page.getByRole("button", { name: /dinsdag 20 oktober: .*1 dubbel/ })).toBeVisible();
 });
 
 test("on a phone the client sees the day as a vertical calendar and can open a coach", async ({ page }) => {

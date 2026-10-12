@@ -81,10 +81,7 @@ export function MessageCard({ m, canEmail = false, defaultOpen = false }: { m: M
 export function Outbox({ messages }: { messages: Message[] }) {
   if (messages.length === 0)
     return (
-      <EmptyState icon={Mail} title="Nog geen berichten">
-        Haal op het <Link href="/planbord" className="text-primary hover:underline">planbord</Link> iemand van een dienst
-        binnen 7 dagen (bijvoorbeeld vrijdag 23 oktober) en het bericht verschijnt hier.
-      </EmptyState>
+      <EmptyState icon={Mail} title="Nog geen berichten" />
     );
   return (
     <ul className="space-y-2">

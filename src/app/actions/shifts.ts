@@ -151,27 +151,33 @@ export async function removeEmployee(id: string, reason: string, actor: Actor, s
   return { ok: true, notified };
 }
 
-export async function assignEmployee(id: string, employeeId: string, actor: Actor): Promise<ActionResult> {
+/**
+ * Puts an employee on a shift. Normally the shift must be open; with `replacing` the planner hands a shift
+ * (usually one with a conflict) from that employee to another, and only if it still belongs to them.
+ */
+export async function assignEmployee(id: string, employeeId: string, actor: Actor, replacing?: string): Promise<ActionResult> {
+  if (replacing && actor.role !== "planner") return { error: "Alleen de planner kan een dienst overdragen." };
+  if (replacing === employeeId) return { error: "Kies een andere medewerker." };
   const sb = await supabaseServer();
   const ws = await getWorkspace(sb);
   const before = await getShift(sb, id);
   if (!before || before.status !== "active") return { error: "Dienst niet gevonden." };
-  if (before.employee_id) return { error: "Deze dienst is al ingevuld." };
+  if ((before.employee_id ?? undefined) !== replacing) return { error: replacing ? "Deze dienst is intussen gewijzigd." : "Deze dienst is al ingevuld." };
   const { data: emp } = await sb.from("employees").select("name, functions").eq("id", employeeId).single();
   if (!emp) return { error: "Medewerker niet gevonden." };
   if (actor.role === "medewerker" && (actor.employeeId !== employeeId || !emp.functions.includes(before.function)))
     return { error: "Deze dienst past niet bij je functie." };
-  // Only succeeds while the shift is still open, so two people cannot take the same shift.
-  const { data, error } = await sb
-    .from("shifts")
-    .update({ employee_id: employeeId, updated_at: now() })
-    .eq("id", id)
-    .is("employee_id", null)
+  // Only succeeds while the shift is still as we saw it (open, or still with `replacing`),
+  // so two people cannot take the same shift and a hand-over never overwrites someone else's change.
+  const base = sb.from("shifts").update({ employee_id: employeeId, updated_at: now() }).eq("id", id);
+  const { data, error } = await (replacing ? base.eq("employee_id", replacing) : base.is("employee_id", null))
     .select(SHIFT_COLS)
     .maybeSingle();
-  if (error || !data) return { error: "Iemand anders was je net voor." };
+  if (error || !data) return { error: replacing ? "Deze dienst is intussen gewijzigd." : "Iemand anders was je net voor." };
   const action = actor.role === "medewerker" ? "open_shift_accepted" : "employee_assigned";
-  const logId = await logChange(sb, { ws, actor, action, shift: data as ShiftRow, before, after: data });
+  const previous = replacing ? await employeeName(sb, replacing) : null;
+  const reason = replacing ? `Overgenomen van ${previous ?? "een collega"} om een conflict op te lossen` : undefined;
+  const logId = await logChange(sb, { ws, actor, action, shift: data as ShiftRow, before, after: data, reason });
   const notified = await notifyClientIfShortNotice(sb, {
     ws, logId, action: "employee_assigned", shift: data as ShiftRow, employeeName: emp.name,
   });

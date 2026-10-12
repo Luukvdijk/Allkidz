@@ -189,9 +189,7 @@ function MyShifts({ mine, actor }: { mine: Shift[]; actor: Actor }) {
           })}
         </div>
       ) : inRange.length === 0 ? (
-        <EmptyState icon={CalendarDays} title="Geen diensten in deze periode">
-          Kijk een week of maand verder, of pak een dienst op bij Open.
-        </EmptyState>
+        <EmptyState icon={CalendarDays} title="Geen diensten in deze periode" />
       ) : range === "dag" ? (
         <ul className="grid gap-2 md:grid-cols-2">
           {inRange.map((s) => <ShiftCard key={s.id} s={s} actor={actor} />)}
@@ -453,7 +451,7 @@ function BagPanel({ s, actor }: { s: Shift; actor: Actor }) {
         {open && <span className="text-xs text-muted-foreground tabular-nums">{ticked.length}/{activity.packingList.length}</span>}
         <ChevronDown className={cn("size-4 transition-transform", open && "rotate-180")} aria-hidden />
       </button>
-      <MissingNotice bagId={bag.id} data={data} className="mt-2" hint="Neem dit zelf mee als het kan. De planner weet ervan." />
+      <MissingNotice bagId={bag.id} data={data} className="mt-2" />
       {open && (
         <div className="mt-2 space-y-1.5">
           <ul className="space-y-1">

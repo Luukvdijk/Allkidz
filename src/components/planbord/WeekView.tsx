@@ -46,9 +46,7 @@ export function WeekView({ visible, monday, onOpenDay }: Props) {
 
   if (rows.length === 0)
     return (
-      <EmptyState icon={SearchX} title="Geen diensten in deze week">
-        Niets gevonden met deze filters. Ga naar een andere week of wis de zoekterm.
-      </EmptyState>
+      <EmptyState icon={SearchX} title="Geen diensten in deze week" />
     );
 
   return (

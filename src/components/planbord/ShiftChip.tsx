@@ -133,13 +133,14 @@ export function ShiftChip({ shift, variant = "full", showEmployee = false, dimme
       </button>
       <div className="flex shrink-0 flex-col items-end gap-1">
         <ShiftActions shift={shift} />
-        {open && suggest && variant === "full" && (
+        {(open || conflicts.length > 0) && suggest && variant === "full" && (
           <button
             type="button"
             onClick={() => suggest(shift)}
-            className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium text-primary hover:bg-accent"
+            className="press inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium whitespace-nowrap text-primary hover:bg-accent"
+            aria-label={open ? `Stel iemand voor (${shift.code})` : `Los conflict op: iemand anders voor ${shift.code}`}
           >
-            <Sparkles className="size-3.5" aria-hidden /> Stel iemand voor
+            <Sparkles className="size-3.5" aria-hidden /> {open ? "Stel iemand voor" : "Iemand anders"}
           </button>
         )}
       </div>

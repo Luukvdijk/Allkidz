@@ -16,7 +16,6 @@ export default function MedewerkersPage() {
     <main className="mx-auto max-w-5xl space-y-4 px-4 py-6">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Medewerkers en licenties</h1>
-        <p className="text-sm text-muted-foreground">Verlopen licenties staan bovenaan in rood, licenties die binnen 30 dagen verlopen in oranje.</p>
       </div>
       <Suspense fallback={<PageSkeleton rows={6} />}>
         <Table />

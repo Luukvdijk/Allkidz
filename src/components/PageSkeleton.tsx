@@ -151,3 +151,33 @@ export function EmployeeDetailSkeleton() {
     </Shell>
   );
 }
+
+/** Dashboard: title, six numbers, then the cards in the same grid as the real page. */
+export function DashboardSkeleton() {
+  return (
+    <Shell className="space-y-6">
+      <div className="space-y-1.5">
+        <Bone className="h-7 w-40" />
+        <Bone className="h-4 w-56" />
+      </div>
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border bg-border md:grid-cols-3 xl:grid-cols-6">
+        {Array.from({ length: 6 }, (_, i) => (
+          <div key={i} className="space-y-1.5 bg-card px-4 py-3">
+            <Bone className="h-3 w-20" />
+            <Bone className="h-7 w-12" />
+            <Bone className="h-3 w-24" />
+          </div>
+        ))}
+      </div>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+        <Bone className="h-64 rounded-xl bg-muted/70" />
+        <Bone className="h-64 rounded-xl bg-muted/70" />
+      </div>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Bone className="h-48 rounded-xl bg-muted/70" />
+        <Bone className="h-48 rounded-xl bg-muted/70" />
+        <Bone className="h-48 rounded-xl bg-muted/70" />
+      </div>
+    </Shell>
+  );
+}

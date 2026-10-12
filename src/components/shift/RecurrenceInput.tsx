@@ -72,7 +72,6 @@ export function RecurrenceInput({ value, onChange, marked, min }: { value: Recur
 
       {value.mode === "dates" && (
         <div className="space-y-1.5">
-          <p className="text-xs text-muted-foreground">Klik de dagen aan waarop de dienst terugkomt.</p>
           <MiniCalendar
             selected={value.dates}
             initialMonth={value.date}

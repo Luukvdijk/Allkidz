@@ -1,4 +1,5 @@
 import type { Licence, Shift } from "@/lib/types";
+import { daysBetween } from "@/lib/time";
 
 export interface LicenceProblem {
   type: string;
@@ -21,4 +22,13 @@ export function licenceProblems(shift: Shift, licences: Licence[], required: str
     else if (l.expiresOn !== null && l.expiresOn < shift.date) out.push({ type, kind: "expired", expiresOn: l.expiresOn });
   }
   return out;
+}
+
+export type LicenceStatus = "ok" | "soon" | "expired";
+
+/** Expired before today: red. Expires within 30 days: orange. Otherwise (or no expiry): fine. */
+export function licenceStatus(l: Licence, today: string): LicenceStatus {
+  if (l.expiresOn === null) return "ok";
+  if (l.expiresOn < today) return "expired";
+  return daysBetween(today, l.expiresOn) <= 30 ? "soon" : "ok";
 }
