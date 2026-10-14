@@ -11,7 +11,7 @@ Tip: neem op met Loom, scherm + gezicht. Begin met een verse login, zodat je met
 
 ## 0:40 Inloggen en het dashboard (1:00)
 
-- Eigen kopie van de data per login (Row Level Security in de database). "Bekijk als": planner, medewerker, opdrachtgever.
+- "Elke login krijgt een eigen kopie van de data, dus je kunt niets kapotmaken." "Bekijk als": planner, medewerker, opdrachtgever.
 - Dashboard, deze en volgende week: 293 diensten, 92% ingevuld, 22 open, 29 diensten met een conflict, 3 aanvragen, licenties en tassen. Diensten per dag, werkverdeling (wie heeft nog ruimte), vulgraad per opdrachtgever.
 - "Elk getal is een link naar de plek waar je het oplost, en naar de week van het eerste probleem, niet naar een lege week." Klik op Conflicten.
 
@@ -50,16 +50,15 @@ Tip: neem op met Loom, scherm + gezicht. Begin met een verse login, zodat je met
 
 ## 7:30 Sporttassen en de medewerker-app (0:55)
 
-- Medewerker Emma op de telefoon: haar diensten, "Neem mee: Jachtseizoen tas 1", paklijst afvinken, "Er mist iets". "Dit is ook waar medewerkers beschikbaarheid doorgeven en open diensten aannemen."
+- Medewerker Emma op de telefoon: haar diensten, "Neem mee: Jachtseizoen tas 1", paklijst afvinken, "Er mist iets". "Jullie hebben nu ook een app voor medewerkers. Ik wilde laten zien wat er als webapp kan, zonder iets te installeren: diensten bekijken, beschikbaarheid doorgeven en open diensten aannemen."
 - Planner: op het dashboard het getal bij Tassen, dat opent dinsdag: de tijdlijn per tas laat zien wie welke tas wanneer heeft. Jachtseizoen tas 1 staat rood, bij Anouk en Emma tegelijk. De melding van Emma staat er ook, en op het planbord bij elke dienst met die tas.
 
-## 8:25 AI, eerlijkheid en meer tijd (0:55)
+## 8:25 AI, wat ik zelf deed en hoe ik verder zou gaan (0:55)
 
-- "Ik stuurde, Claude bouwde. Ik controleerde met tests en scripts die los van de app staan." Noem twee correcties uit de toelichting, bijvoorbeeld:
-  - de teller "Alleen conflicten" zei 6 en het blok 4, omdat het ene diensten telde en het andere conflicten;
-  - een test die soms faalde, bleek de ontwikkelserver te zijn en niet de app; bewezen door dezelfde tests op een productiebuild te draaien.
-- Wat niet af is: rollen zijn nagebootst, conflicten worden in de browser berekend.
-- Met meer tijd: conflicten per week op de server (voor een jaar data), echte accounts per rol, pushmeldingen, ruilen van diensten en een koppeling met de urenregistratie.
+- "De keuzes maakte ik en de AI bouwde. Ik las de code en de scripts mee, paste zelf dingen aan en controleerde elke stap."
+- Wat ik zelf deed: "Ik testte alles zelf, op laptop en telefoon, en vond onderweg kleine fouten, zoals een knop die 6 problemen telde terwijl het blok eronder er 4 liet zien. En ik zorgde dat de site veilig is: alleen wie de inloggegevens heeft komt erin, niemand kan eindeloos demo-omgevingen aanmaken, en waar nodig paste ik de code zelf aan."
+- Hoe ik het in het echt zou doen: "Dit is gebouwd op de opdracht en mijn eigen inschatting. In een echt project praat ik eerst met planners, medewerkers en opdrachtgevers: wat werkt nu goed, waar ergeren ze zich aan, en hoe plannen ze echt. Daar bouw ik op verder."
+- Met meer tijd: echte inlogaccounts per rol, meldingen op de telefoon, diensten onderling ruilen en een koppeling met de urenregistratie.
 
 ## 9:20 Afsluiting (0:10)
 
