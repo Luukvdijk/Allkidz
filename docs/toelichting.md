@@ -1,27 +1,29 @@
-# Toelichting: hoe ik AI gebruikte
+# Planning-demo voor AllKidz: wat ik bouwde en hoe
 
-**Gereedschap.** Claude Code, met toegang tot mijn code, de Supabase-database en een browser om zelf te testen.
+**In het kort.** Een werkende planningsapp waarin een planner diensten inplant en direct ziet wat er misgaat: iemand die op twee plekken tegelijk staat, te weinig reistijd heeft of niet beschikbaar is. Alles draait op jullie testdata, en elke login krijgt een eigen kopie, dus je kunt niets kapotmaken.
 
-**Werkwijze.**
-1. *Eerst begrijpen, dan bouwen.* Ik liet Claude de opdracht, de functielijst en de testdata samenvatten en vroeg om keuzes in plaats van code. De keuzes maakte ik zelf: Supabase, een eigen kopie van de data per login en een instelbare meldingstermijn van 7 dagen, omdat AllKidz die grens nog moet bepalen.
-2. *Eerst de data narekenen.* Voor er app-code was, rekende een los script de testdata door: 15 echte conflicten en de valkuilen die erop lijken. Dat werd de "gouden test": de app moet precies die 15 vinden en geen valse melding geven.
-3. *Logica los van schermen.* Conflicten, herhaling, filters, tassen en het dashboard zijn losse functies zonder database of React. Nieuwe regels kregen eerst een test, daarna de code.
-4. *Zelf controleren.* Elk scherm doorgeklikt op laptop en telefoon, plus een security-scan (Aikido, geen bevindingen).
+**Zo probeer je het zelf (2 minuten).**
+1. Log in met de gegevens uit de mail en kies bovenaan "Dashboard".
+2. Klik op het getal bij "Conflicten" en kies daarna bovenaan "Dag". Bij maandag 19 oktober staat Tom bij Conflicten: hij is op twee plekken tegelijk ingepland.
+3. Klik bij zijn dienst op "Iemand anders" en dan op "Overnemen". Het probleem is weg, en de wijziging staat in het wijzigingslog.
 
-**Voorbeelden van prompts.**
-- "Lees de opdracht, de functielijst en de testdata. Wat moet erin, waar letten ze op, en welke valkuilen zitten in de data? Nog geen code."
-- "Schrijf een los script dat alle conflicten in de testdata telt, inclusief gevallen die op een conflict lijken maar het niet zijn."
-- "Schrijf eerst de test met deze 15 conflicten en deze valkuilen, en dan pas de functie."
+**Wat de opdracht vroeg, en wat de app nu doet.**
+- *Dienst aanmaken en herhalen:* eenmalig, op losse datums of als patroon, zoals "elke derde vrijdag". Voor je opslaat zie je per datum al of het botst.
+- *Dagoverzicht per medewerker:* de hele dag op volgorde, met de reistijd ertussen en problemen in gewone taal. De app vindt precies de 15 echte problemen in jullie data, en geen valse.
+- *Zoeken en filteren:* op dag, medewerker, locatie, alleen problemen of alleen open diensten. Dat gaat direct.
+- *Wijzigingslog:* wie wat wanneer veranderde en waarom. Een reden is verplicht en niemand kan het log aanpassen.
 
-**Waar ik moest bijsturen.**
-- *Randgevallen.* Diensten die op elkaar aansluiten overlappen niet, precies genoeg reistijd is "krap" en geen conflict. Die grenzen staan nu in tests.
-- *Traag is niet altijd een spinner.* Filteren voelde traag. Een laadicoon had het verstopt, maar elke klik haalde de hele planning opnieuw van de server, terwijl filteren in de browser gebeurt. Nu duurt een filter 19 milliseconden.
-- *Tellers die elkaar tegenspraken.* De knop "Alleen conflicten" zei 6, het blok eronder 4: de ene telde diensten, de andere conflicten. Alles telt nu diensten.
-- *Een test die soms faalde.* Ik liet de test niet aanpassen tot hij slaagde, maar liet uitzoeken waarom. Het bleek de ontwikkelserver te zijn en niet de app: dezelfde tests slaagden steeds op een productiebuild.
-- *Beveiliging.* Een waarschuwing van de database-adviseur bracht me op een echt risico: iemand kon eindeloos demo-omgevingen aanmaken. Dat heb ik dichtgezet.
+**Wat ik extra bouwde, en waarom.**
+- *Een app voor medewerkers* om diensten te bekijken, door te geven wanneer ze niet kunnen en open diensten aan te nemen. Jullie hebben nu ook een app; ik wilde laten zien wat er als webapp kan, zonder iets te installeren.
+- *Een automatisch bericht* aan de opdrachtgever bij een wijziging binnen 7 dagen, zonder de privéreden. Die termijn is instelbaar, zodat jullie die grens zelf kunnen kiezen.
+- *Hulp bij oplossen en overzicht:* "Stel iemand voor" toont wie een dienst kan doen zonder nieuw probleem, en een dashboard laat alles in één oogopslag zien.
+- *Uit jullie functielijst:* licenties met vervaldatum, een portaal waar opdrachtgevers diensten aanvragen, en sporttassen. Daarvoor maakte ik met jullie akkoord een kleine fictieve aanvulling op de testdata.
 
-**Uitbreiding (licenties, opdrachtgevers, tassen, dashboard).** Jullie testdata bevatte geen licenties, opdrachtgevers of tassen. Daarvoor maakte ik een kleine fictieve aanvulling in een apart bestand, met een eigen controlescript; op jullie eigen data blijven het precies 15 conflicten. Ook hier stuurde ik bij: de AI plande activiteiten om 07:30, voor schooltijd, en de live controle zag een tas bij een andere coach over het hoofd (eerst met een falende test aangetoond, daarna opgelost).
+**Hoe ik AI gebruikte.** Ik werkte met Claude Code, een AI die code schrijft en de app zelf in een browser kan testen. De keuzes maakte ik en de AI bouwde. Ik las de code en de scripts mee, paste zelf dingen aan en controleerde elke stap. Wat ik vroeg, en wat dat opleverde:
+- *"Lees de opdracht, de functielijst en de testdata. Waar letten ze op, en welke valkuilen zitten in de data? Nog geen code."* Zo begon ik met begrijpen in plaats van bouwen, en koos ik daarna zelf wat erin kwam.
+- *"Zet de medewerkers met een conflict in het blok Conflicten, in dezelfde vorm, zodat ze makkelijk op te lossen zijn. En stel daar net als bij een open dienst een oplossing voor."* Nu staat elk probleem bovenaan, met een knop die alleen mensen voorstelt die er geen nieuw probleem door krijgen.
+- *"Als ik filters toepas en het duurt even, ziet het er raar uit. Kijk ook naar laadschermen."* Bij het uitzoeken bleek dat elke klik alles opnieuw ophaalde. In plaats van een laadicoon werkt filteren nu direct.
 
-**Privacy en testen.** Alleen fictieve data. Elke login is afgeschermd met Row Level Security. Het wijzigingslog kan niet worden aangepast. De reden van een afmelding gaat niet naar de opdrachtgever, en een e-mailadres voor de demo-mail wordt niet opgeslagen. 112 unit-tests (waarvan twee gouden tests) en 4 end-to-end tests.
+**Wat ik zelf deed.** Ik testte alles zelf, op laptop en telefoon, en vond onderweg kleine fouten die de AI daarna oploste, zoals een knop die 6 problemen telde terwijl het blok eronder er 4 liet zien, en datums in het verleden die je nog kon kiezen. Daarnaast zorgde ik dat de site veilig is: alleen wie de inloggegevens heeft komt erin, niemand kan eindeloos demo-omgevingen aanmaken, en een verzoek aan de server doet alleen wat het mag. Waar nodig paste ik de code daarvoor zelf aan.
 
-**Wat nog niet af is.** Rollen worden nagebootst ("Bekijk als") in plaats van echte accounts. Conflicten worden in de browser berekend; voor een jaar aan data zou ik dat per week op de server doen.
+**Hoe ik het in het echt zou aanpakken.** Deze demo bouwde ik op de opdracht en mijn eigen inschatting. In een echt project begin ik liever niet bij wat ik zelf het beste vind. Ik praat eerst met planners, medewerkers en opdrachtgevers: wat werkt nu goed, waar ergeren ze zich aan en hoe plannen ze echt? Daar bouw ik op verder. Daarna zou ik toevoegen: echte inlogaccounts per rol, meldingen op de telefoon, diensten ruilen en een koppeling met de urenregistratie.
