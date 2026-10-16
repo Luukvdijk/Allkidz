@@ -364,7 +364,6 @@ function VerticalDay({ shifts, locations, emp, act, onCoach }: DayProps) {
     .filter((c) => c.list.length > 0);
   const empty = locations.filter((l) => !columns.some((c) => c.l.id === l.id));
   const width = (count: number) => Math.max(count * LANE_PX, 128);
-  const wide = columns.reduce((w, c) => w + width(c.count), 0) > 300;
 
   return (
     <div className="space-y-2 sm:hidden">

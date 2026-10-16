@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { ChevronDown, Mail, Send } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "cn";

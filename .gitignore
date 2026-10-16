@@ -45,3 +45,6 @@ next-env.d.ts
 /playwright-report/
 
 !.env.example
+
+# local editor and agent settings
+/.claude/
