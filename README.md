@@ -1,92 +1,92 @@
 # AllKidz Planning (demo)
 
-A planning app for AllKidz, built as a candidate assignment. A planner plans shifts for KidzCoaches at childcare locations, schools and pools, and immediately sees what goes wrong: someone planned in two places at once, too little travel time between locations, or a shift while unavailable.
+Een planningsapp voor AllKidz, gebouwd als opdracht in een sollicitatie. Een planner plant diensten voor KidzCoaches op kinderopvanglocaties, scholen en zwembaden, en ziet direct wat er misgaat: iemand die op twee plekken tegelijk staat, te weinig reistijd heeft tussen locaties, of ingepland is terwijl hij of zij niet beschikbaar is.
 
-**Live demo:** https://allkidz.luukvandijk.com (login details are sent separately). Every login gets its own fresh copy of the fictional test data, so nothing you change is visible to anyone else.
+**Live demo:** https://allkidz.luukvandijk.com (de inloggegevens zijn apart gestuurd). Elke login krijgt een eigen, schone kopie van de fictieve testdata, dus wat je verandert ziet niemand anders.
 
-## What it does
+## Wat de app doet
 
-The four parts of the assignment:
+De vier onderdelen uit de opdracht:
 
-- **Create and repeat shifts:** employee, location, times and function; once, on loose dates (calendar) or as a pattern (every week, every other week, the third Friday of the month). Every generated date is checked for conflicts before saving, and dates in the past cannot be picked.
-- **Day overview per employee:** the whole day in time order with the transfer between shifts ("10 min, travel time 25 min"). Conflicts: overlap, too little travel time, unavailable and wrong function, each explained in plain Dutch. A gap exactly equal to the travel time is shown as "krap" (tight), not as a conflict.
-- **Search and filter** over all 293 shifts: by day, employee, location, function, only conflicts or only open shifts. Filtering runs in the browser on data that is already loaded, so it is instant; the filters live in the URL.
-- **Change log:** who, when, what (before and after) and why. A reason is required for every removal. The log is append-only, enforced in the database.
+- **Diensten aanmaken en herhalen:** medewerker, locatie, tijden en functie; eenmalig, op losse datums (kalender) of als patroon (elke week, om de week, de derde vrijdag van de maand). Elke datum die daaruit voortkomt wordt vóór het opslaan op conflicten gecontroleerd, en datums in het verleden kun je niet kiezen.
+- **Dagoverzicht per medewerker:** de hele dag op tijdsvolgorde, met de overstap tussen diensten ("10 min, reistijd 25 min"). Conflicten: overlap, te weinig reistijd, niet beschikbaar en verkeerde functie, elk uitgelegd in gewone taal. Een tussenpauze die precies gelijk is aan de reistijd staat er als "krap", niet als conflict.
+- **Zoeken en filteren** over alle 293 diensten: op dag, medewerker, locatie, functie, alleen conflicten of alleen open diensten. Het filteren gebeurt in de browser op data die al geladen is, dus het werkt direct; de filters staan in de URL.
+- **Wijzigingslog:** wie, wanneer, wat (voor en na) en waarom. Bij elke verwijdering is een reden verplicht. Het log kan alleen worden aangevuld, nooit aangepast; dat dwingt de database af.
 
-On top of that:
+Daarbovenop:
 
-- **Dashboard** for this week and the next: shifts and fill rate, open shifts, conflicts, requests, licences and bags, with every number linking to the place where it can be acted on.
-- **Planbord** with day, list, week and month views. On the day view, employees with a conflict get their own section, and "Iemand anders" suggests who can take a shift over without a new conflict.
-- **Suggest an employee** for an open shift: right function, valid licences, available, no overlap, enough travel time, fewest hours that week first.
-- **Automatic client message** for changes within the notice period (7 days by default, configurable), without the private reason.
-- **Employee web app** (app layout on a phone, a normal page on a laptop): own shifts, report unavailability, accept matching open shifts, cancel with a reason.
-- **Employee page for the planner:** hours per week, conflicts, upcoming shifts, licences and recent changes.
-- **From the AllKidz feature list:** licences with expiry dates (required per location type), a client portal (planning per location, shift requests, locations, coach profiles without surname or BSN) and sport bags (a bag stays with one coach for the day; two coaches with the same bag is a conflict; missing items are reported from the employee app).
+- **Dashboard** voor deze en volgende week: diensten en bezetting, open diensten, conflicten, aanvragen, licenties en tassen. Elk getal linkt naar de plek waar je er iets mee kunt doen.
+- **Planbord** met dag-, lijst-, week- en maandweergave. In de dagweergave krijgen medewerkers met een conflict een eigen blok, en "Iemand anders" stelt voor wie een dienst kan overnemen zonder nieuw conflict.
+- **Iemand voorstellen** voor een open dienst: juiste functie, geldige licenties, beschikbaar, geen overlap, genoeg reistijd, en wie die week de minste uren heeft eerst.
+- **Automatisch bericht aan de opdrachtgever** bij wijzigingen binnen de meldingstermijn (standaard 7 dagen, instelbaar), zonder de privéreden.
+- **Webapp voor medewerkers** (app-indeling op de telefoon, gewone pagina op de laptop): eigen diensten, niet-beschikbaarheid doorgeven, passende open diensten aannemen, afmelden met een reden.
+- **Medewerkerpagina voor de planner:** uren per week, conflicten, komende diensten, licenties en recente wijzigingen.
+- **Uit de functielijst van AllKidz:** licenties met vervaldatum (verplicht per type locatie), een portaal voor opdrachtgevers (planning per locatie, dienstaanvragen, locaties, coachprofielen zonder achternaam of BSN) en sporttassen (een tas blijft een dag bij één coach; twee coaches met dezelfde tas is een conflict; wat er mist meldt de medewerker vanuit de app).
 
-Roles are switched with "Bekijk als" in the header (planner, an employee or a client).
+Met "Bekijk als" bovenin wissel je van rol: planner, een medewerker of een opdrachtgever.
 
-## Tech stack
+## Techniek
 
 - [Next.js 16](https://nextjs.org) (App Router, Cache Components), React 19, TypeScript
-- Tailwind CSS v4 and shadcn/ui on Base UI
-- [Supabase](https://supabase.com): Postgres with Row Level Security, anonymous sign-in per demo login
-- Resend for the optional real email of a client message
-- Vitest for unit tests, Playwright for end-to-end tests
+- Tailwind CSS v4 en shadcn/ui op Base UI
+- [Supabase](https://supabase.com): Postgres met Row Level Security, anoniem inloggen per demo-login
+- Resend voor de optionele echte e-mail van een bericht aan de opdrachtgever
+- Vitest voor unit-tests, Playwright voor end-to-end-tests
 
-## How it is built
+## Hoe het is opgebouwd
 
-- **Planning logic is plain TypeScript in `src/lib/`**, without React or database, so it is fast and fully unit-tested. The conflict engine is in `src/lib/conflicts/`.
-- **Pages load the whole workspace once** (about 300 shifts) and filter and detect conflicts in memory.
-- **Writes go through server actions** in `src/app/actions/`. They validate the input again on the server, write the change log, and send the client message when a change falls within the notice period.
-- **Each demo login is an anonymous Supabase user with its own workspace.** Row Level Security limits every table to that workspace. The function that creates a workspace returns the existing one when it is called again, so the database cannot be filled by calling it in a loop. Workspaces are removed after 7 days by a scheduled job.
+- **De planningslogica is gewone TypeScript in `src/lib/`**, zonder React of database. Daardoor is ze snel en volledig met unit-tests gedekt. De conflictcontrole staat in `src/lib/conflicts/`.
+- **Pagina's laden de hele werkomgeving in één keer** (ongeveer 300 diensten) en filteren en zoeken conflicten in het geheugen.
+- **Wijzigingen lopen via server actions** in `src/app/actions/`. Die controleren de invoer op de server nog een keer, schrijven het wijzigingslog en sturen het bericht aan de opdrachtgever als een wijziging binnen de meldingstermijn valt.
+- **Elke demo-login is een anonieme Supabase-gebruiker met een eigen werkomgeving.** Row Level Security beperkt elke tabel tot die werkomgeving. De functie die een werkomgeving aanmaakt geeft de bestaande terug als je hem nog eens aanroept, zodat niemand de database kan volschrijven door hem in een lus aan te roepen. Werkomgevingen worden na 7 dagen automatisch opgeruimd.
 
 ```
 src/
-  app/              routes (planbord, dashboard, aanvragen, tassen, medewerkers, log, ...) and server actions
-  components/       screens per area (planbord, shift form, employee app, client portal, bags, dashboard)
+  app/              pagina's (planbord, dashboard, aanvragen, tassen, medewerkers, log, ...) en server actions
+  components/       schermen per onderdeel (planbord, dienstformulier, medewerker-app, opdrachtgeversportaal, tassen, dashboard)
   lib/
-    conflicts/      conflict engine: overlap, travel time, unavailable, function, licence, bag
-    recurrence.ts   loose dates and patterns
-    filters.ts      filters kept in the URL
-    suggest.ts      ranking of suitable employees
-    dashboard.ts    numbers for the dashboard
-    data/           loading from Supabase
-supabase/migrations/  schema, Row Level Security, seed data
-scripts/            test data import and the self-made extra data
-tests/              unit tests (Vitest)
-e2e/                end-to-end tests (Playwright)
+    conflicts/      conflictcontrole: overlap, reistijd, niet beschikbaar, functie, licentie, tas
+    recurrence.ts   losse datums en patronen
+    filters.ts      filters in de URL
+    suggest.ts      rangorde van geschikte medewerkers
+    dashboard.ts    cijfers voor het dashboard
+    data/           laden uit Supabase
+supabase/migrations/  databaseschema, Row Level Security, testdata
+scripts/            import van de testdata en de zelfgemaakte aanvulling
+tests/              unit-tests (Vitest)
+e2e/                end-to-end-tests (Playwright)
 ```
 
-## Test data
+## Testdata
 
-- `data/source/Testdata-planning-app.xlsx` is the supplied fictional test data (293 shifts in the week of 19 to 23 October 2026, 40 employees, 28 locations). `scripts/import_testdata.py` turns it into the JSON fixture used by the tests and into the seed SQL.
-- The supplied data has no licences, clients or bags. `data/aanvullende-testdata.json` is a **self-made, fictional** addition, generated by `scripts/make_extra_testdata.py`, checked independently by `scripts/analyze_extra.py` and turned into SQL by `scripts/seed_extra_sql.py`.
+- `data/source/Testdata-planning-app.xlsx` is de aangeleverde fictieve testdata (293 diensten in de week van 19 tot en met 23 oktober 2026, 40 medewerkers, 28 locaties). `scripts/import_testdata.py` zet die om naar de JSON die de tests gebruiken en naar de SQL voor de database.
+- De aangeleverde data bevat geen licenties, opdrachtgevers of tassen. `data/aanvullende-testdata.json` is een **zelfgemaakte, fictieve** aanvulling. Die wordt gemaakt door `scripts/make_extra_testdata.py`, los gecontroleerd door `scripts/analyze_extra.py` en omgezet naar SQL door `scripts/seed_extra_sql.py`.
 
-## Run locally
+## Lokaal draaien
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in the Supabase URL and publishable key, the demo login and optionally a Resend key
+cp .env.example .env.local   # vul de Supabase-URL en publishable key in, de demo-login en eventueel een Resend-key
 npm run dev
 ```
 
-Apply the migrations in `supabase/migrations/` in order to a Supabase project with anonymous sign-ins enabled.
+Voer de migraties in `supabase/migrations/` op volgorde uit in een Supabase-project waarin anoniem inloggen aan staat.
 
 ## Tests
 
 ```bash
-npm test            # unit tests
+npm test            # unit-tests
 npm run typecheck   # TypeScript
 npm run lint        # ESLint
-npm run e2e         # end-to-end tests against the dev server
+npm run e2e         # end-to-end-tests tegen de ontwikkelserver
 ```
 
-The unit tests include two golden tests over the full dataset. The first asserts that the engine finds exactly the 15 known conflicts in the supplied data and none of the look-alikes: a gap equal to the travel time, back to back at the same location, a shift ending exactly when unavailability starts, and open shifts. The second adds the self-made data: 15 + 4 licence conflicts + 1 bag double, with its own traps, such as a licence expiring on the shift date or the same coach using one bag twice.
+Bij de unit-tests zitten twee "gouden tests" over de volledige dataset. De eerste controleert dat de app precies de 15 bekende conflicten in de aangeleverde data vindt, en geen van de gevallen die er alleen op lijken: een pauze die precies gelijk is aan de reistijd, twee diensten direct na elkaar op dezelfde locatie, een dienst die precies eindigt als de niet-beschikbaarheid begint, en open diensten. De tweede voegt de zelfgemaakte data toe: 15 + 4 licentieconflicten + 1 dubbel geboekte tas, met eigen valkuilen, zoals een licentie die op de dag van de dienst verloopt of dezelfde coach die één tas twee keer gebruikt.
 
-The end-to-end tests are most reliable one at a time (`npm run e2e -- --workers=1`) or against a production build, because a first-time page compile on the dev server can reload a page in a parallel test.
+De end-to-end-tests zijn het betrouwbaarst één voor één (`npm run e2e -- --workers=1`) of tegen een productiebuild. Op de ontwikkelserver kan het eerste keer laden van een pagina in de ene test een pagina in een parallelle test herladen.
 
-## Known limitations
+## Bekende beperkingen
 
-- Roles are switched inside the demo ("Bekijk als"); there are no separate accounts per role yet.
-- Conflicts are computed in the browser for the loaded data. That is fine for hundreds of shifts; for a full year of data this would move to the server per week.
-- Not included: push notifications, swapping shifts, hours registration and invoicing.
+- Rollen wissel je binnen de demo ("Bekijk als"); er zijn nog geen aparte accounts per rol.
+- Conflicten worden in de browser berekend voor de geladen data. Voor honderden diensten is dat prima; voor een heel jaar zou dat per week naar de server gaan.
+- Nog niet gebouwd: pushmeldingen, diensten ruilen, urenregistratie en facturatie.
