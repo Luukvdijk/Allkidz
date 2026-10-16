@@ -69,6 +69,37 @@ const FIELDS: [string, string][] = [
 const time = (iso: string) => new Date(iso).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" });
 const day = (iso: string) => new Date(iso).toLocaleDateString("sv-SE", { timeZone: "Europe/Amsterdam" });
 
+const employeeName = (names: Record<string, string>, id: unknown) => (typeof id === "string" ? (names[id] ?? "?") : "niemand (open)");
+
+/** One log entry as a short Dutch sentence (also what the search looks through). */
+function sentence(e: LogEntry, names: Record<string, string>): string {
+  const emp = (id: unknown) => employeeName(names, id);
+  const code = e.shift_code ?? "";
+  switch (e.action) {
+    case "shift_created": return `maakte ${code} aan`;
+    case "shift_updated": return `wijzigde ${code}`;
+    case "shift_cancelled": return `annuleerde ${code}`;
+    case "employee_removed": return `haalde ${emp(e.before?.employee_id)} van ${code}`;
+    case "employee_assigned": return `plande ${emp(e.after?.employee_id)} in op ${code}`;
+    case "employee_cancelled_self": return `meldde zich af voor ${code}`;
+    case "open_shift_accepted": return `nam open dienst ${code} aan`;
+    case "availability_changed": {
+      const r = e.after ?? e.before;
+      const when = r ? `${shortDate(String(r.date))} ${String(r.start_time).slice(0, 5)}-${String(r.end_time).slice(0, 5)}` : "";
+      return e.after ? `gaf door: ${emp(r?.employee_id)} niet beschikbaar ${when}` : `haalde niet-beschikbaar weg voor ${emp(r?.employee_id)} (${when})`;
+    }
+    case "request_created": return "vroeg diensten aan";
+    case "request_approved": return "keurde een aanvraag goed";
+    case "request_rejected": return "wees een aanvraag af";
+    case "location_added": return `voegde locatie ${String(e.after?.name ?? "")} toe`;
+    case "location_archived": return `archiveerde locatie ${String(e.before?.name ?? "")}`;
+    case "material_reported": return `meldde dat er iets mist${e.after?.shift_code ? ` (${String(e.after.shift_code)})` : ""}`;
+    case "material_resolved": return "markeerde een materiaalmelding als opgelost";
+    case "bag_changed": return `wijzigde de tas van ${code}`;
+    default: return e.action;
+  }
+}
+
 export function LogTimeline({ entries, cancelled, employeeNames, locationNames }: Props) {
   const [tab, setTab] = useState<"log" | "cancelled">("log");
   const [q, setQ] = useState("");
@@ -76,7 +107,7 @@ export function LogTimeline({ entries, cancelled, employeeNames, locationNames }
   const [role, setRole] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
 
-  const emp = (id: unknown) => (typeof id === "string" ? employeeNames[id] ?? "?" : "niemand (open)");
+  const emp = (id: unknown) => employeeName(employeeNames, id);
   const fmt = (field: string, v: unknown): string => {
     if (v === null || v === undefined || v === "") return "leeg";
     if (field === "employee_id") return emp(v);
@@ -87,46 +118,18 @@ export function LogTimeline({ entries, cancelled, employeeNames, locationNames }
     return String(v);
   };
 
-  const sentence = (e: LogEntry): string => {
-    const code = e.shift_code ?? "";
-    switch (e.action) {
-      case "shift_created": return `maakte ${code} aan`;
-      case "shift_updated": return `wijzigde ${code}`;
-      case "shift_cancelled": return `annuleerde ${code}`;
-      case "employee_removed": return `haalde ${emp(e.before?.employee_id)} van ${code}`;
-      case "employee_assigned": return `plande ${emp(e.after?.employee_id)} in op ${code}`;
-      case "employee_cancelled_self": return `meldde zich af voor ${code}`;
-      case "open_shift_accepted": return `nam open dienst ${code} aan`;
-      case "availability_changed": {
-        const r = e.after ?? e.before;
-        const when = r ? `${shortDate(String(r.date))} ${String(r.start_time).slice(0, 5)}-${String(r.end_time).slice(0, 5)}` : "";
-        return e.after ? `gaf door: ${emp(r?.employee_id)} niet beschikbaar ${when}` : `haalde niet-beschikbaar weg voor ${emp(r?.employee_id)} (${when})`;
-      }
-      case "request_created": return "vroeg diensten aan";
-      case "request_approved": return "keurde een aanvraag goed";
-      case "request_rejected": return "wees een aanvraag af";
-      case "location_added": return `voegde locatie ${String(e.after?.name ?? "")} toe`;
-      case "location_archived": return `archiveerde locatie ${String(e.before?.name ?? "")}`;
-      case "material_reported": return `meldde dat er iets mist${e.after?.shift_code ? ` (${String(e.after.shift_code)})` : ""}`;
-      case "material_resolved": return "markeerde een materiaalmelding als opgelost";
-      case "bag_changed": return `wijzigde de tas van ${code}`;
-      default: return e.action;
-    }
-  };
-
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return entries.filter((e) => {
       if (action && e.action !== action) return false;
       if (role && e.actor_role !== role) return false;
       if (needle) {
-        const hay = `${e.shift_code ?? ""} ${e.actor_name} ${sentence(e)} ${e.reason ?? ""}`.toLowerCase();
+        const hay = `${e.shift_code ?? ""} ${e.actor_name} ${sentence(e, employeeNames)} ${e.reason ?? ""}`.toLowerCase();
         if (!hay.includes(needle)) return false;
       }
       return true;
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entries, q, action, role]);
+  }, [entries, q, action, role, employeeNames]);
 
   const groups = useMemo(() => {
     const m = new Map<string, LogEntry[]>();
@@ -214,7 +217,7 @@ export function LogTimeline({ entries, cancelled, employeeNames, locationNames }
                           </span>
                         </span>
                         <span>
-                          {sentence(e).split(e.shift_code ?? "\u0000").map((part, i, arr) => (
+                          {sentence(e, employeeNames).split(e.shift_code ?? "\u0000").map((part, i, arr) => (
                             <span key={i}>
                               {part}
                               {i < arr.length - 1 && e.shift_code && (

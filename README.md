@@ -1,5 +1,7 @@
 # AllKidz Planning (demo)
 
+[![CI](https://github.com/Luukvdijk/Allkidz/actions/workflows/ci.yml/badge.svg)](https://github.com/Luukvdijk/Allkidz/actions/workflows/ci.yml)
+
 Een planningsapp voor AllKidz, gebouwd als opdracht in een sollicitatie. Een planner plant diensten voor KidzCoaches op kinderopvanglocaties, scholen en zwembaden, en ziet direct wat er misgaat: iemand die op twee plekken tegelijk staat, te weinig reistijd heeft tussen locaties, of ingepland is terwijl hij of zij niet beschikbaar is.
 
 **Live demo:** https://allkidz.luukvandijk.com (de inloggegevens zijn apart gestuurd). Elke login krijgt een eigen, schone kopie van de fictieve testdata, dus wat je verandert ziet niemand anders.
@@ -57,6 +59,14 @@ tests/              unit-tests (Vitest)
 e2e/                end-to-end-tests (Playwright)
 ```
 
+## Keuzes en afwegingen
+
+- **Supabase in plaats van alleen opslag in de browser.** Zo zijn wijzigingen, het wijzigingslog en berichten echt opgeslagen en is de beveiliging per gebruiker in de database geregeld. Nadeel: de demo hangt van een externe dienst af.
+- **Een eigen kopie van de data per login.** Beoordelaars kunnen alles uitproberen zonder elkaar in de weg te zitten, en niemand ziet andermans wijzigingen. Nadeel: geen echte accounts per rol; daarom wissel je van rol met "Bekijk als".
+- **Conflicten berekenen in de browser.** Voor een week met ongeveer 300 diensten is dat het snelst: filteren en controleren gaan direct, zonder wachten op de server. Voor een heel jaar zou ik dit per week op de server doen.
+- **Planningslogica los van de schermen.** De regels voor conflicten, herhaling en voorstellen staan in losse functies, zodat ze met tests vast te leggen zijn en later ook op de server kunnen draaien.
+- **Eerst de data narekenen, dan bouwen.** De 15 echte conflicten in de testdata zijn vooraf met een los script bepaald en vastgelegd in een test, zodat de app aantoonbaar geen valse meldingen geeft.
+
 ## Testdata
 
 - `data/source/Testdata-planning-app.xlsx` is de aangeleverde fictieve testdata (293 diensten in de week van 19 tot en met 23 oktober 2026, 40 medewerkers, 28 locaties). `scripts/import_testdata.py` zet die om naar de JSON die de tests gebruiken en naar de SQL voor de database.
@@ -81,12 +91,16 @@ npm run lint        # ESLint
 npm run e2e         # end-to-end-tests tegen de ontwikkelserver
 ```
 
+Bij elke push draaien lint, typecheck, de unit-tests en de build automatisch op GitHub (zie de badge bovenaan). De end-to-end-tests hebben een echte database nodig en draaien daarom lokaal.
+
 Bij de unit-tests zitten twee "gouden tests" over de volledige dataset. De eerste controleert dat de app precies de 15 bekende conflicten in de aangeleverde data vindt, en geen van de gevallen die er alleen op lijken: een pauze die precies gelijk is aan de reistijd, twee diensten direct na elkaar op dezelfde locatie, een dienst die precies eindigt als de niet-beschikbaarheid begint, en open diensten. De tweede voegt de zelfgemaakte data toe: 15 + 4 licentieconflicten + 1 dubbel geboekte tas, met eigen valkuilen, zoals een licentie die op de dag van de dienst verloopt of dezelfde coach die één tas twee keer gebruikt.
 
 De end-to-end-tests zijn het betrouwbaarst één voor één (`npm run e2e -- --workers=1`) of tegen een productiebuild. Op de ontwikkelserver kan het eerste keer laden van een pagina in de ene test een pagina in een parallelle test herladen.
 
 ## Bekende beperkingen
 
-- Rollen wissel je binnen de demo ("Bekijk als"); er zijn nog geen aparte accounts per rol.
+- Rollen wissel je binnen de demo ("Bekijk als"); er zijn nog geen aparte accounts per rol. De server gaat daarom uit van de rol die de app meestuurt. Binnen de demo kan dat geen kwaad, omdat elke login alleen bij zijn eigen kopie kan; in een echt product komt de rol uit de inlog.
+- Het demo-wachtwoord wordt veilig vergeleken, maar het aantal inlogpogingen is niet beperkt.
+- De invoer wordt op de server met eigen controles nagelopen; in een echt product zou ik daar een validatiebibliotheek zoals Zod voor gebruiken.
 - Conflicten worden in de browser berekend voor de geladen data. Voor honderden diensten is dat prima; voor een heel jaar zou dat per week naar de server gaan.
 - Nog niet gebouwd: pushmeldingen, diensten ruilen, urenregistratie en facturatie.
