@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "cn";
@@ -81,20 +81,28 @@ function ShiftForm({ state, onClose, onCreated }: { state: SheetState; onClose: 
   const dates = useMemo(() => (edit ? [date] : expandRule(toRule(rec)).slice(0, 200)), [edit, date, rec]);
   const timesValid = /^\d{2}:\d{2}$/.test(start) && /^\d{2}:\d{2}$/.test(end) && end > start;
 
-  const bagFor = (dt: string): string | null =>
-    !activityId ? null : bagChoice === AUTO ? pickBag(activityId, dt, employeeId || null, data, edit?.id) : bagChoice || null;
+  const editId = edit?.id;
+  const editCode = edit?.code;
+  const bagFor = useCallback(
+    (dt: string): string | null =>
+      !activityId ? null : bagChoice === AUTO ? pickBag(activityId, dt, employeeId || null, data, editId) : bagChoice || null,
+    [activityId, bagChoice, employeeId, data, editId],
+  );
 
-  const probe = (dt: string): Shift => ({
-    id: edit?.id ?? `__new__${dt}`, code: edit?.code ?? "nieuw", date: dt, start, end, locationId, fn,
-    employeeId: employeeId || null, status: "active", note: null, seriesId: null,
-    activityId: activityId || null, bagId: bagFor(dt), extraRequirements: extraReqs,
-  });
+  // The shift as it would be saved on date `dt`, to check conflicts before saving.
+  const probe = useCallback(
+    (dt: string): Shift => ({
+      id: editId ?? `__new__${dt}`, code: editCode ?? "nieuw", date: dt, start, end, locationId, fn,
+      employeeId: employeeId || null, status: "active", note: null, seriesId: null,
+      activityId: activityId || null, bagId: bagFor(dt), extraRequirements: extraReqs,
+    }),
+    [editId, editCode, start, end, locationId, fn, employeeId, activityId, bagFor, extraReqs],
+  );
 
   const preview = useMemo(() => {
     if (!timesValid) return [];
     return dates.map((dt) => ({ date: dt, conflicts: employeeId ? conflictsIfAssigned(data, probe(dt), employeeId) : ([] as Conflict[]) }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dates, employeeId, locationId, fn, start, end, data, timesValid, activityId, bagChoice, extraReqs]);
+  }, [dates, employeeId, data, timesValid, probe]);
   const conflictCount = preview.filter((p) => p.conflicts.length > 0).length;
 
   // Which employees would get a conflict on the first date: shown in the dropdown as a warning.
@@ -102,8 +110,7 @@ function ShiftForm({ state, onClose, onCreated }: { state: SheetState; onClose: 
     if (!timesValid || dates.length === 0) return new Set<string>();
     const first = probe(dates[0]);
     return new Set(data.employees.filter((e) => conflictsIfAssigned(data, first, e.id).length > 0).map((e) => e.id));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dates, locationId, fn, start, end, data, timesValid, activityId, bagChoice, extraReqs]);
+  }, [dates, data, timesValid, probe]);
 
   const markedDates = useMemo(() => new Set(data.shifts.map((s) => s.date)), [data.shifts]);
 
